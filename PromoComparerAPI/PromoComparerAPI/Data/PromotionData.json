@@ -1,0 +1,44 @@
+﻿[
+  {
+    "id": "0365d127-7924-4548-a0b0-fb03f83ce4fd",
+    "productName": "Woda niegazowana ŻywiecZdrój 1l",
+    "unitType": "sztuka",
+    "originalPrice": 2.99,
+    "priceAfterPromotion": 1.99,
+    "promotionType": "standardowa",
+    "startDate": "2025-01-04T18:55:34.469",
+    "endDate": "2025-01-08T18:55:34.469",
+    "untilOutOfStock": true,
+    "requiredApp": "",
+    "categoryId": "2f325b33-85cb-4b16-961d-410277a22ed1",
+    "leafletId": "80acac2e-82d5-43e0-a7fc-aa7e68087d06"
+  },
+  {
+    "id": "026a4365-a4dc-4ac1-9990-1857766a1553",
+    "productName": "Szynka parmeńska",
+    "unitType": "kg",
+    "originalPrice": 9.99,
+    "priceAfterPromotion": 5.99,
+    "promotionType": "standardowa",
+    "startDate": "2025-01-04T18:55:34.469",
+    "endDate": "2025-01-08T18:55:34.469",
+    "untilOutOfStock": true,
+    "requiredApp": "",
+    "categoryId": "2f325b33-85cb-4b16-961d-410277a22ed1",
+    "leafletId": "80acac2e-82d5-43e0-a7fc-aa7e68087d06"
+  },
+  {
+    "id": "2f95e6dc-b448-4b85-98a3-c07bdac4ab8b",
+    "productName": "Bułka pszenna",
+    "unitType": "sztuka",
+    "originalPrice": 0.69,
+    "priceAfterPromotion": 0.39,
+    "promotionType": "standardowa",
+    "startDate": "2025-01-01T19:36:37.082",
+    "endDate": "2025-01-03T19:36:37.082",
+    "untilOutOfStock": true,
+    "requiredApp": "",
+    "categoryId": "2f325b33-85cb-4b16-961d-410277a22ed1",
+    "leafletId": "80acac2e-82d5-43e0-a7fc-aa7e68087d06"
+  }
+]
