@@ -34,6 +34,11 @@ public class PdfHandlerService : IPdfHandlerService
     {
         try
         {
+            var ids = new List<string>();
+            var datesList = new List<string>();
+            var links = new List<string>();
+
+
             foreach (var shop in _shopsList)
             {
                 var urlPart = "https://www.gazetkipromocyjne.net/";
@@ -43,27 +48,58 @@ public class PdfHandlerService : IPdfHandlerService
                 var htmlDocument = new HtmlDocument();
                 htmlDocument.LoadHtml(htmlContent);
 
-                var nodes = htmlDocument.DocumentNode.SelectNodes("//a[contains(@class, 'newspapper-nav-download')]");
-
-
-                if (nodes != null)
+                var newspapperFooterNodes = htmlDocument.DocumentNode.SelectNodes("//div[contains(@class, 'newspapper-footer')]");
+                if (newspapperFooterNodes != null)
                 {
                     var shopDirectory = Path.Combine(_pdfDirectory, shop);
                     if (!Directory.Exists(shopDirectory))
                     {
                         Directory.CreateDirectory(shopDirectory);
                     }
-
-                    foreach (var node in nodes)
+                    foreach (var newspapperFooterNode in newspapperFooterNodes)
                     {
-                        var href = node.GetAttributeValue("href", "");
-                        if (!string.IsNullOrEmpty(href))
+                        var buttonNode = newspapperFooterNode.SelectSingleNode(".//button[contains(@class, 'newspapper-btn')]");
+                        var pNode = newspapperFooterNode.SelectSingleNode(".//p");
+
+                        if (buttonNode != null && pNode != null)
                         {
-                            var fileName = Path.GetFileName(new Uri(href).LocalPath);
-                            var fullPath = Path.Combine(shopDirectory, fileName);
-                            await DownloadFileAsync(href, fullPath);
+                            var relValue = buttonNode.GetAttributeValue("rel", string.Empty);
+                            var id = relValue.StartsWith("#") ? relValue.Substring(1) : relValue;
+                            var dates = pNode.InnerText.Trim();
+
+                            ids.Add(id);
+                            datesList.Add(dates);
+
+                            var divId = $"{id}";
+                            var divNode = htmlDocument.DocumentNode.SelectSingleNode($"//div[@id='{divId}' and contains(@class, 'newspapper-preview')]");
+
+                            if (divNode != null)
+                            {
+                                var downloadLinkNode = divNode.SelectSingleNode(".//a[contains(@class, 'newspapper-nav-download')]");
+                                if (downloadLinkNode != null)
+                                {
+                                    var pdfLink = downloadLinkNode.GetAttributeValue("href", string.Empty);
+
+                                    if (!string.IsNullOrEmpty(pdfLink))
+                                    {
+                                        links.Add(pdfLink);
+                                        var fileName = Path.GetFileName(new Uri(pdfLink).LocalPath);
+                                        var fullPath = Path.Combine(shopDirectory, fileName);
+                                        await DownloadFileAsync(pdfLink, fullPath);
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine($"Error processing PDF for {id}");
+                                    }
+                                }
+                            }
                         }
                     }
+                }
+                Console.WriteLine($"Extracted IDs, Dates and Links for shop {shop}:");
+                for (int i = 0; i < ids.Count; i++)
+                {
+                    Console.WriteLine($"ID: {ids[i]}, Dates: {datesList[i]}, Link: {links[i]}");
                 }
             }
         }
