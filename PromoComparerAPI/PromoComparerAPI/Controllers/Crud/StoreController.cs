@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using PromoComparerAPI.Data;
 using PromoComparerAPI.Interfaces.Crud;
 using PromoComparerAPI.Models.DTOs;
 
@@ -48,5 +47,12 @@ public class StoreController : Controller
             ModelState.AddModelError("", ex.Message);
             return BadRequest(ModelState);
         }
+    }
+
+    [HttpPost("all")]
+    public IActionResult CreateStoresFromConf()
+    {
+        _storeService.CreateStoresFromConf();
+        return Ok();
     }
 }

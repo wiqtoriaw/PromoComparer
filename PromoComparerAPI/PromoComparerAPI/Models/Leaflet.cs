@@ -1,5 +1,4 @@
-﻿using PromoComparerAPI.Models.DTOs;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PromoComparerAPI.Models;
@@ -11,6 +10,8 @@ public class Leaflet
     public Guid Id { get; set; } = Guid.NewGuid();
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
+
+    //TODO: DODAĆ POLE public string PdfLink {get; set;}
 
     [ForeignKey("Store")]
     public Guid StoreId { get; set; }

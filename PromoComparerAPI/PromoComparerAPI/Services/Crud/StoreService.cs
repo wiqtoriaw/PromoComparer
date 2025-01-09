@@ -9,10 +9,18 @@ namespace PromoComparerAPI.Services.Crud;
 public class StoreService : IStoreService
 {
     private readonly ApplicationDbContext _context;
+    private readonly List<string> _shopsList;
 
-    public StoreService(ApplicationDbContext context)
+
+    public StoreService(ApplicationDbContext context, IConfiguration configuration)
     {
         _context = context;
+        _shopsList = configuration.GetSection("Shops").Get<List<string>>();
+
+        if (_shopsList == null)
+        {
+            throw new ArgumentNullException(nameof(_shopsList), "The 'Shops' section in the configuration is missing or empty.");
+        }
     }
 
     public async Task<IEnumerable<StoreDto>> GetAllStoresAsync()
@@ -33,6 +41,20 @@ public class StoreService : IStoreService
         return new StoreDto { Id = store.Id, Name = store.Name, Stem = store.Stem};
     }
 
+    public Guid GetIdFromStem(string shop_stem)
+    {
+        var store = _context.Stores
+            .AsNoTracking()
+            .FirstOrDefault(s => s.Stem.ToLower() == shop_stem.ToLower());
+
+        if (store == null)
+        {
+            throw new KeyNotFoundException($"Store with stem '{shop_stem}' not found.");
+        }
+
+        return store.Id;
+    }
+
     public async Task<StoreDto> CreateStoreAsync(StoreDto storeDto)
     {
         if (await _context.Stores.AnyAsync(s => s.Name.ToLower() == storeDto.Name.ToLower()))
@@ -51,5 +73,52 @@ public class StoreService : IStoreService
 
         storeDto.Id = store.Id;
         return storeDto;
+    }
+
+    public void CreateStoresFromConf()
+    {
+        foreach (var shop_stem in _shopsList)
+        {
+            try
+            {
+                var shopParts = shop_stem.Split('-');
+
+                for (int i = 0; i < shopParts.Length; i++)
+                {
+                    if (shopParts[i].Length > 0)
+                    {
+                        var firstChar = char.ToUpper(shopParts[i][0]);
+                        var rest = shopParts[i].Substring(1).ToLower();
+                        shopParts[i] = firstChar + rest;
+                    }
+                }
+
+                var shop_name = string.Join(" ", shopParts);
+
+                if (_context.Stores.Any(s => s.Name.ToLower() == shop_name.ToLower()))
+                {
+                    throw new InvalidOperationException($"Store '{shop_name}' already exists!");
+                }
+
+                var store = new Store
+                {
+                    Name = shop_name,
+                    Stem = shop_stem
+                };
+
+                _context.Stores.Add(store);
+                _context.SaveChanges();
+
+                Console.WriteLine($"Added store: {shop_name}");
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Unexpected error for store '{shop_stem}': {ex.Message}");
+            }
+        }
     }
 }

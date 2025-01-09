@@ -1,6 +1,7 @@
 ﻿using HtmlAgilityPack;
 using ImageMagick;
 using PromoComparerAPI.Interfaces;
+using PromoComparerAPI.Interfaces.Crud;
 
 namespace PromoComparerAPI.Services;
 
@@ -10,8 +11,11 @@ public class PdfHandlerService : IPdfHandlerService
     private readonly List<string> _shopsList;
     private readonly string _pdfDirectory = "Pdfs";
     private readonly string _imageDirectory = "Assets";
+    private readonly ILeafletService _leafletService;
+    private readonly IOpenAIService _openAIService;
 
-    public PdfHandlerService(IConfiguration configuration)
+
+    public PdfHandlerService(IConfiguration configuration, ILeafletService leafletService, IOpenAIService openAIService)
     {
         _httpClient = new HttpClient();
         _shopsList = configuration.GetSection("Shops").Get<List<string>>();
@@ -28,18 +32,16 @@ public class PdfHandlerService : IPdfHandlerService
         {
             throw new ArgumentNullException(nameof(_shopsList), "The 'Shops' section in the configuration is missing or empty.");
         }
+
+        _leafletService = leafletService;
+        _openAIService = openAIService;
     }
 
     public async Task DownloadPdfsLeafletsAsync()
     {
         try
         {
-            var ids = new List<string>();
-            var datesList = new List<string>();
-            var links = new List<string>();
-
-
-            foreach (var shop in _shopsList)
+            foreach (var shop in _shopsList)  // dla każdego sklepu
             {
                 var urlPart = "https://www.gazetkipromocyjne.net/";
                 var url = $"{urlPart}{shop}/";
@@ -56,7 +58,7 @@ public class PdfHandlerService : IPdfHandlerService
                     {
                         Directory.CreateDirectory(shopDirectory);
                     }
-                    foreach (var newspapperFooterNode in newspapperFooterNodes)
+                    foreach (var newspapperFooterNode in newspapperFooterNodes)  //dla każdej gazetki
                     {
                         var buttonNode = newspapperFooterNode.SelectSingleNode(".//button[contains(@class, 'newspapper-btn')]");
                         var pNode = newspapperFooterNode.SelectSingleNode(".//p");
@@ -67,9 +69,6 @@ public class PdfHandlerService : IPdfHandlerService
                             var id = relValue.StartsWith("#") ? relValue.Substring(1) : relValue;
                             var dates = pNode.InnerText.Trim();
 
-                            ids.Add(id);
-                            datesList.Add(dates);
-
                             var divId = $"{id}";
                             var divNode = htmlDocument.DocumentNode.SelectSingleNode($"//div[@id='{divId}' and contains(@class, 'newspapper-preview')]");
 
@@ -78,14 +77,26 @@ public class PdfHandlerService : IPdfHandlerService
                                 var downloadLinkNode = divNode.SelectSingleNode(".//a[contains(@class, 'newspapper-nav-download')]");
                                 if (downloadLinkNode != null)
                                 {
-                                    var pdfLink = downloadLinkNode.GetAttributeValue("href", string.Empty);
+                                    var pdfLink = downloadLinkNode.GetAttributeValue("href", string.Empty);  //wyciągamy link gazetki
 
                                     if (!string.IsNullOrEmpty(pdfLink))
                                     {
-                                        links.Add(pdfLink);
                                         var fileName = Path.GetFileName(new Uri(pdfLink).LocalPath);
                                         var fullPath = Path.Combine(shopDirectory, fileName);
-                                        await DownloadFileAsync(pdfLink, fullPath);
+                                        if (File.Exists(fullPath))
+                                        {
+                                            Console.WriteLine($"File already exists for ID {id}: {fileName}. Skipping download.");
+                                        }
+                                        else        //dodajemy gazetkę do bazy i zapisujemy pdf
+                                        {
+                                            var leafletId = _leafletService.CreateLeaflet(dates, shop);  // tworzenie gazetki
+                                            fileName = $"{leafletId}.pdf";
+                                            fullPath = Path.Combine(shopDirectory, fileName);
+                                                                                                                              //TODO: przenieść do oddzielnej funkcji
+                                            await DownloadFileAsync(pdfLink, fullPath);     // zapisanie pdf
+
+                                            ConvertAllPdfsToImagesAndDelete();     // konwertowanie pdf na zdjecia
+                                        }
                                     }
                                     else
                                     {
@@ -95,11 +106,6 @@ public class PdfHandlerService : IPdfHandlerService
                             }
                         }
                     }
-                }
-                Console.WriteLine($"Extracted IDs, Dates and Links for shop {shop}:");
-                for (int i = 0; i < ids.Count; i++)
-                {
-                    Console.WriteLine($"ID: {ids[i]}, Dates: {datesList[i]}, Link: {links[i]}");
                 }
             }
         }
@@ -131,8 +137,8 @@ public class PdfHandlerService : IPdfHandlerService
         {
             try
             {
-                ConvertPdfToImages(pdfFile);
                 Console.WriteLine($"Converting {pdfFile}");
+                ConvertPdfToImages(pdfFile);
 
 
                 File.Delete(pdfFile);
@@ -146,7 +152,7 @@ public class PdfHandlerService : IPdfHandlerService
         }
     }
 
-    private void ConvertPdfToImages(string pdfPath)
+    private void ConvertPdfToImages(string pdfPath)             //TODO: sprawdzić czemu tak mieli
     {
         try
         {
