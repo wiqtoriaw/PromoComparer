@@ -9,10 +9,13 @@ namespace PromoComparerAPI.Services.Crud;
 public class LeafletService : ILeafletService
 {
     private readonly ApplicationDbContext _context;
+    private readonly IStoreService _storeService;
 
-    public LeafletService(ApplicationDbContext context)
+
+    public LeafletService(ApplicationDbContext context, IStoreService storeService)
     {
         _context = context;
+        _storeService = storeService;
     }
 
     public async Task<IEnumerable<LeafletDto>> GetAllLeafletsAsync()
@@ -60,5 +63,43 @@ public class LeafletService : ILeafletService
 
         leafletDto.Id = leaflet.Id;
         return leafletDto;
+    }
+
+    //
+
+    public Guid CreateLeaflet(string dateRange, string shop_stem)
+    {
+        var dates = dateRange.Split('–');
+
+        if (dates.Length == 2)
+        {
+            var startDateString = dates[0].Trim();
+            var endDateString = dates[1].Trim();
+
+            DateTime startDate = DateTime.ParseExact(startDateString, "dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture);
+            DateTime endDate = DateTime.ParseExact(endDateString, "dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture);
+
+            startDate = startDate.Date; // ustawia czas na północ (00:00:00)
+            endDate = endDate.Date.AddDays(1).AddTicks(-1); // ustawia czas na koniec dnia (23:59:59.9999999)
+
+            var storeId = _storeService.GetIdFromStem(shop_stem);
+
+            var leaflet = new Leaflet
+            {
+                StartDate = startDate,
+                EndDate = endDate,
+                StoreId = storeId
+            };
+
+            _context.Leaflets.Add(leaflet);
+            _context.SaveChanges();
+
+            return leaflet.Id;
+
+        }
+        else
+        {
+            throw new ArgumentException("Date range format is incorrect.", nameof(dateRange));
+        }
     }
 }
