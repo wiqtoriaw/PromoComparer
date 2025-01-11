@@ -1,0 +1,29 @@
+.categories-container {
+    padding: 20px;
+    text-align: center;
+  }
+  
+  .categories-container h2 {
+    margin-bottom: 20px;
+    color: #333;
+  }
+  
+  .categories-dropdown {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+  
+  .categories-dropdown select {
+    padding: 10px;
+    font-size: 1em;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #f9fafc;
+    cursor: pointer;
+  }
+  
+  .categories-dropdown select:hover {
+    border-color: #007bff;
+  }
+  
