@@ -33,12 +33,12 @@ public class LeafletController : Controller
     }
 
 
-    [HttpPost]
-    [ProducesResponseType(StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<LeafletDto>> CreateLeaflet([FromBody] LeafletDto leafletDto)
-    {
-        var createdLeaflet = await _leafletService.CreateLeafletAsync(leafletDto);
-        return CreatedAtRoute("GetLeaflet", new { id = createdLeaflet.Id }, createdLeaflet);
-    }
+    //[HttpPost]
+    //[ProducesResponseType(StatusCodes.Status201Created)]
+    //[ProducesResponseType(StatusCodes.Status400BadRequest)]
+    //public async Task<ActionResult<LeafletDto>> CreateLeaflet([FromBody] LeafletDto leafletDto)
+    //{
+    //    var createdLeaflet = await _leafletService.CreateLeafletAsync(leafletDto);
+    //    return CreatedAtRoute("GetLeaflet", new { id = createdLeaflet.Id }, createdLeaflet);
+    //}
 }

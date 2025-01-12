@@ -12,7 +12,7 @@ using PromoComparerAPI.Data;
 namespace PromoComparerAPI.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250107215221_InitialSetup")]
+    [Migration("20250112123027_InitialSetup")]
     partial class InitialSetup
     {
         /// <inheritdoc />
@@ -49,6 +49,10 @@ namespace PromoComparerAPI.Migrations
 
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("PdfLink")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");

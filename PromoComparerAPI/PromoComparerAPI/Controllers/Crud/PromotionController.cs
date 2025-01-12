@@ -44,10 +44,10 @@ public class PromotionController : Controller
     }
 
 
-    [HttpPost]
-    public async Task<ActionResult<PromotionDto>> CreatePromotion([FromBody] PromotionDto promotionDto)
-    {
-        var createdPromotion = await _promotionService.CreatePromotionAsync(promotionDto);
-        return CreatedAtRoute("GetPromotion", new { id = createdPromotion.Id }, createdPromotion);
-    }
+    //[HttpPost]
+    //public async Task<ActionResult<PromotionDto>> CreatePromotionAsync([FromBody] PromotionDto promotionDto)
+    //{
+    //    var createdPromotion = await _promotionService.CreatePromotionAsync(promotionDto);
+    //    return CreatedAtRoute("GetPromotion", new { id = createdPromotion.Id }, createdPromotion);
+    //}
 }

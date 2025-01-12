@@ -1,18 +1,22 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using OpenAI.Chat;
 using PromoComparerAPI.Data;
 using PromoComparerAPI.Interfaces.Crud;
 using PromoComparerAPI.Models;
 using PromoComparerAPI.Models.DTOs;
+using System.Text.Json;
 
 namespace PromoComparerAPI.Services.Crud;
 
 public class PromotionService : IPromotionService
 {
     private readonly ApplicationDbContext _context;
+    private readonly ICategoryService _categoryService;
 
-    public PromotionService(ApplicationDbContext context)
+    public PromotionService(ApplicationDbContext context, ICategoryService categoryService)
     {
         _context = context;
+        _categoryService = categoryService;
     }
     public async Task<IEnumerable<PromotionDto>> GetAllPromotionsAsync()
     {
@@ -107,5 +111,80 @@ public class PromotionService : IPromotionService
 
         promotionDto.Id = promotion.Id;
         return promotionDto;
+    }
+
+    public void CreatePromotions(ChatCompletion completion, Guid guidLeaflet)   //TODO!!!!!!
+    {
+        try
+        {
+            using (JsonDocument structuredJson = JsonDocument.Parse(completion.Content[0].Text))
+            {
+
+                JsonElement root = structuredJson.RootElement;
+
+                if (root.ValueKind == JsonValueKind.Object && root.GetProperty("promotions").ValueKind == JsonValueKind.Array)
+                {
+                    JsonElement promotions = root.GetProperty("promotions");
+
+                    if (promotions.GetArrayLength() == 0)
+                    {
+                        throw new InvalidOperationException("No promotion data.");
+                    }
+
+                    foreach (JsonElement promotion in promotions.EnumerateArray())
+                    {
+                        string productName = promotion.GetProperty("ProductName").GetString();
+                        string unitType = promotion.GetProperty("UnitType").GetString();
+                        decimal originalPrice = promotion.GetProperty("OriginalPrice").GetDecimal();
+                        decimal priceAfterPromotion = promotion.GetProperty("PriceAfterPromotion").GetDecimal();
+                        string promotionType = promotion.GetProperty("PromotionType").GetString();
+                        DateTime startDate = promotion.GetProperty("StartDate").GetDateTime();
+                        DateTime endDate = promotion.GetProperty("EndDate").GetDateTime();
+                        bool untilOutOfStock = promotion.GetProperty("UntilOutOfStock").GetBoolean();
+                        string requiredApp = promotion.GetProperty("RequiredApp").GetString();
+                        string categoryName = promotion.GetProperty("Category").GetString();
+
+                        Guid categoryId = _categoryService.GetCategoryIdFromCategoryName(categoryName);
+
+
+
+                        //Console.WriteLine(productName, unitType, originalPrice, priceAfterPromotion, )
+
+
+                        //var promotionToDatabase = new Promotion
+                        //{
+                        //    ProductName = productName,
+                        //    UnitType = unitType,
+                        //    OriginalPrice = originalPrice,
+                        //    PriceAfterPromotion = priceAfterPromotion,
+                        //    PromotionType = promotionType,
+                        //    StartDate = startDate,
+                        //    EndDate = endDate,
+                        //    UntilOutOfStock = untilOutOfStock,
+                        //    RequiredApp = requiredApp,
+                        //    CategoryId = categoryId,
+                        //    LeafletId = guidLeaflet
+                        //};
+
+                        //_context.Promotions.Add(promotionToDatabase);
+                        //_context.SaveChanges();
+
+
+                    }
+                }
+                else
+                {
+                    throw new InvalidOperationException("Invalid input data.");
+                }
+            }
+        }
+        catch (InvalidOperationException ex)
+        {
+            Console.WriteLine($"Error in CreatePromotion: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Unexpected error in CreatePromotion: {ex.Message}");
+        }
     }
 }

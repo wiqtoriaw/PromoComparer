@@ -1,5 +1,7 @@
 ﻿using HtmlAgilityPack;
 using ImageMagick;
+using Microsoft.EntityFrameworkCore;
+using PromoComparerAPI.Data;
 using PromoComparerAPI.Interfaces;
 using PromoComparerAPI.Interfaces.Crud;
 
@@ -13,9 +15,10 @@ public class PdfHandlerService : IPdfHandlerService
     private readonly string _imageDirectory = "Assets";
     private readonly ILeafletService _leafletService;
     private readonly IOpenAIService _openAIService;
+    private readonly ApplicationDbContext _context;
 
 
-    public PdfHandlerService(IConfiguration configuration, ILeafletService leafletService, IOpenAIService openAIService)
+    public PdfHandlerService(IConfiguration configuration, ILeafletService leafletService, IOpenAIService openAIService, ApplicationDbContext context)
     {
         _httpClient = new HttpClient();
         _shopsList = configuration.GetSection("Shops").Get<List<string>>();
@@ -35,83 +38,170 @@ public class PdfHandlerService : IPdfHandlerService
 
         _leafletService = leafletService;
         _openAIService = openAIService;
+        _context = context;
     }
 
-    public async Task DownloadPdfsLeafletsAsync()
+    //public async Task ScrappPromotionData(string shop)
+    //{
+    //    try
+    //    {
+    //        var urlPart = "https://www.gazetkipromocyjne.net/";
+    //        var url = $"{urlPart}{shop}/";
+
+    //        var htmlContent = await _httpClient.GetStringAsync(url);
+    //        var htmlDocument = new HtmlDocument();
+    //        htmlDocument.LoadHtml(htmlContent);
+
+    //        var newspapperFooterNodes = htmlDocument.DocumentNode.SelectNodes("//div[contains(@class, 'newspapper-footer')]");
+    //        if (newspapperFooterNodes != null)
+    //        {
+    //            var shopDirectory = Path.Combine(_pdfDirectory, shop);
+    //            if (!Directory.Exists(shopDirectory))
+    //            {
+    //                Directory.CreateDirectory(shopDirectory);
+    //            }
+    //            foreach (var newspapperFooterNode in newspapperFooterNodes)  //dla każdej gazetki
+    //            {
+    //                var buttonNode = newspapperFooterNode.SelectSingleNode(".//button[contains(@class, 'newspapper-btn')]");
+    //                var pNode = newspapperFooterNode.SelectSingleNode(".//p");
+
+    //                if (buttonNode != null && pNode != null)
+    //                {
+    //                    var relValue = buttonNode.GetAttributeValue("rel", string.Empty);
+    //                    var id = relValue.StartsWith("#") ? relValue.Substring(1) : relValue;
+    //                    var dates = pNode.InnerText.Trim();
+
+    //                    var divId = $"{id}";
+    //                    var divNode = htmlDocument.DocumentNode.SelectSingleNode($"//div[@id='{divId}' and contains(@class, 'newspapper-preview')]");
+
+    //                    if (divNode != null)
+    //                    {
+    //                        var downloadLinkNode = divNode.SelectSingleNode(".//a[contains(@class, 'newspapper-nav-download')]");
+    //                        if (downloadLinkNode != null)
+    //                        {
+    //                            var pdfLink = downloadLinkNode.GetAttributeValue("href", string.Empty);  //wyciągamy link gazetki
+
+    //                            if (!string.IsNullOrEmpty(pdfLink))
+    //                            {
+    //                                var fileName = Path.GetFileName(new Uri(pdfLink).LocalPath);
+    //                                var fullPath = Path.Combine(shopDirectory, fileName);
+    //                                if (File.Exists(fullPath))
+    //                                {
+    //                                    Console.WriteLine($"File already exists for ID {id}: {fileName}. Skipping download.");
+    //                                }
+    //                                else        //dodajemy gazetkę do bazy i zapisujemy pdf
+    //                                {
+    //                                    var leafletId = _leafletService.CreateLeaflet(dates, shop);  // tworzenie gazetki
+    //                                    fileName = $"{leafletId}.pdf";
+    //                                    fullPath = Path.Combine(shopDirectory, fileName);
+    //                                                                                                                        //TODO: przenieść do oddzielnej funkcji
+    //                                    await DownloadFileAsync(pdfLink, fullPath);     // zapisanie pdf
+
+    //                                    ConvertAllPdfsToImagesAndDelete();     // konwertowanie pdf na zdjecia
+    //                                }
+    //                            }
+    //                            else
+    //                            {
+    //                                Console.WriteLine($"Error processing PDF for {id}");
+    //                            }
+    //                        }
+    //                    }
+    //                }
+    //            }
+    //        }
+
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        Console.WriteLine($"Error processing PDFs: {ex.Message}");
+    //    }
+    //}
+
+    public async Task ScrappPromotionData(string shop)
     {
         try
         {
-            foreach (var shop in _shopsList)  // dla każdego sklepu
+            var url = $"https://www.gazetkipromocyjne.net/{shop}/";
+            var htmlDocument = await ExtractHtmlContent(url);
+
+            var newspapperFooterNodes = htmlDocument.DocumentNode.SelectNodes("//div[contains(@class, 'newspapper-footer')]");
+            if (newspapperFooterNodes != null)
             {
-                var urlPart = "https://www.gazetkipromocyjne.net/";
-                var url = $"{urlPart}{shop}/";
-
-                var htmlContent = await _httpClient.GetStringAsync(url);
-                var htmlDocument = new HtmlDocument();
-                htmlDocument.LoadHtml(htmlContent);
-
-                var newspapperFooterNodes = htmlDocument.DocumentNode.SelectNodes("//div[contains(@class, 'newspapper-footer')]");
-                if (newspapperFooterNodes != null)
-                {
-                    var shopDirectory = Path.Combine(_pdfDirectory, shop);
-                    if (!Directory.Exists(shopDirectory))
-                    {
-                        Directory.CreateDirectory(shopDirectory);
-                    }
-                    foreach (var newspapperFooterNode in newspapperFooterNodes)  //dla każdej gazetki
-                    {
-                        var buttonNode = newspapperFooterNode.SelectSingleNode(".//button[contains(@class, 'newspapper-btn')]");
-                        var pNode = newspapperFooterNode.SelectSingleNode(".//p");
-
-                        if (buttonNode != null && pNode != null)
-                        {
-                            var relValue = buttonNode.GetAttributeValue("rel", string.Empty);
-                            var id = relValue.StartsWith("#") ? relValue.Substring(1) : relValue;
-                            var dates = pNode.InnerText.Trim();
-
-                            var divId = $"{id}";
-                            var divNode = htmlDocument.DocumentNode.SelectSingleNode($"//div[@id='{divId}' and contains(@class, 'newspapper-preview')]");
-
-                            if (divNode != null)
-                            {
-                                var downloadLinkNode = divNode.SelectSingleNode(".//a[contains(@class, 'newspapper-nav-download')]");
-                                if (downloadLinkNode != null)
-                                {
-                                    var pdfLink = downloadLinkNode.GetAttributeValue("href", string.Empty);  //wyciągamy link gazetki
-
-                                    if (!string.IsNullOrEmpty(pdfLink))
-                                    {
-                                        var fileName = Path.GetFileName(new Uri(pdfLink).LocalPath);
-                                        var fullPath = Path.Combine(shopDirectory, fileName);
-                                        if (File.Exists(fullPath))
-                                        {
-                                            Console.WriteLine($"File already exists for ID {id}: {fileName}. Skipping download.");
-                                        }
-                                        else        //dodajemy gazetkę do bazy i zapisujemy pdf
-                                        {
-                                            var leafletId = _leafletService.CreateLeaflet(dates, shop);  // tworzenie gazetki
-                                            fileName = $"{leafletId}.pdf";
-                                            fullPath = Path.Combine(shopDirectory, fileName);
-                                                                                                                              //TODO: przenieść do oddzielnej funkcji
-                                            await DownloadFileAsync(pdfLink, fullPath);     // zapisanie pdf
-
-                                            ConvertAllPdfsToImagesAndDelete();     // konwertowanie pdf na zdjecia
-                                        }
-                                    }
-                                    else
-                                    {
-                                        Console.WriteLine($"Error processing PDF for {id}");
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+                ProcessNewspaperNodes(newspapperFooterNodes, shop, htmlDocument);
             }
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error processing PDFs: {ex.Message}");
+        }
+    }
+
+    private async Task<HtmlDocument> ExtractHtmlContent(string url)
+    {
+        var htmlContent = await _httpClient.GetStringAsync(url);
+        var htmlDocument = new HtmlDocument();
+        htmlDocument.LoadHtml(htmlContent);
+        return htmlDocument;
+    }
+
+    private void ProcessNewspaperNodes(HtmlNodeCollection newspapperFooterNodes, string shop, HtmlDocument htmlDocument)
+    {
+        var shopDirectory = Path.Combine(_pdfDirectory, shop);
+        if (!Directory.Exists(shopDirectory))
+        {
+            Directory.CreateDirectory(shopDirectory);
+        }
+
+        foreach (var newspapperFooterNode in newspapperFooterNodes)
+        {
+            var buttonNode = newspapperFooterNode.SelectSingleNode(".//button[contains(@class, 'newspapper-btn')]");
+            var pNode = newspapperFooterNode.SelectSingleNode(".//p");
+
+            if (buttonNode != null && pNode != null)
+            {
+                var relValue = buttonNode.GetAttributeValue("rel", string.Empty);
+                var id = relValue.StartsWith("#") ? relValue.Substring(1) : relValue;
+                var dates = pNode.InnerText.Trim();
+
+                var divId = $"{id}";
+                var divNode = htmlDocument.DocumentNode.SelectSingleNode($"//div[@id='{divId}' and contains(@class, 'newspapper-preview')]");
+
+                if (divNode != null)
+                {
+                    var downloadLinkNode = divNode.SelectSingleNode(".//a[contains(@class, 'newspapper-nav-download')]");
+                    if (downloadLinkNode != null)
+                    {
+                        var pdfLink = downloadLinkNode.GetAttributeValue("href", string.Empty);
+                        if (!string.IsNullOrEmpty(pdfLink))
+                        {
+                            DownloadAndSavePdf(pdfLink, dates, shopDirectory, shop);
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Error processing PDF for {id}");
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private async void DownloadAndSavePdf(string pdfLink, string dates, string shopDirectory, string shop)
+    {
+        var fileName = Path.GetFileName(new Uri(pdfLink).LocalPath);
+        var fullPath = Path.Combine(shopDirectory, fileName);
+
+        if (_context.Leaflets.Any(s => s.PdfLink.ToLower() == pdfLink.ToLower()))
+        {
+            Console.WriteLine($"File already exists for {fileName}. Skipping download."); //TODO: trzeba sprawdzić czy działa
+        }
+        else
+        {
+            var leafletId = _leafletService.CreateLeaflet(dates, shop, pdfLink);   // parsuje Leaflet do bazy
+            fileName = $"{leafletId}.pdf";
+            fullPath = Path.Combine(shopDirectory, fileName);
+
+            await DownloadFileAsync(pdfLink, fullPath);
         }
     }
 
@@ -152,7 +242,7 @@ public class PdfHandlerService : IPdfHandlerService
         }
     }
 
-    private void ConvertPdfToImages(string pdfPath)             //TODO: sprawdzić czemu tak mieli
+    private void ConvertPdfToImages(string pdfPath)
     {
         try
         {
@@ -166,7 +256,7 @@ public class PdfHandlerService : IPdfHandlerService
 
             var settings = new MagickReadSettings
             {
-                Density = new Density(500, 500)
+                Density = new Density(300, 300)
             };
 
             using var images = new MagickImageCollection();
@@ -179,9 +269,9 @@ public class PdfHandlerService : IPdfHandlerService
 
             foreach (var image in images)
             {
-                var imagePath = Path.Combine(imageDirectory, $"Page{pageIndex}.jpg");
+                var imagePath = Path.Combine(imageDirectory, $"Page{pageIndex}.png");
 
-                image.Write(imagePath, MagickFormat.Jpeg);
+                image.Write(imagePath, MagickFormat.Png);
 
                 Console.WriteLine($"Saved {imagePath}");
 
