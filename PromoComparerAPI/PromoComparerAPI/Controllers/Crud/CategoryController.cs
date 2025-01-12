@@ -32,13 +32,28 @@ public class CategoryController : Controller
     }
 
 
-    [HttpPost]
-    public async Task<ActionResult<CategoryDto>> CreateCategory([FromBody] CategoryDto categoryDto)
+    //[HttpPost]
+    //public async Task<ActionResult<CategoryDto>> CreateCategory([FromBody] CategoryDto categoryDto)
+    //{
+    //    try
+    //    {
+    //        var createdCategory = await _categoryService.CreateCategoryAsync(categoryDto);
+    //        return CreatedAtRoute("GetCategory", new { id = createdCategory.Id }, createdCategory);
+    //    }
+    //    catch (InvalidOperationException ex)
+    //    {
+    //        ModelState.AddModelError("", ex.Message);
+    //        return BadRequest(ModelState);
+    //    }
+    //}
+
+    [HttpPost("from-list")]   // jednorazowe - wprowadza już dane z wypisanej listy
+    public IActionResult CreateCategoryFromList()
     {
         try
         {
-            var createdCategory = await _categoryService.CreateCategoryAsync(categoryDto);
-            return CreatedAtRoute("GetCategory", new { id = createdCategory.Id }, createdCategory);
+            _categoryService.CreateCategoryFromList();
+            return Ok();
         }
         catch (InvalidOperationException ex)
         {

@@ -1,7 +1,6 @@
 ﻿using OpenAI.Chat;
 using PromoComparerAPI.Interfaces;
-
-
+using PromoComparerAPI.Interfaces.Crud;
 
 namespace PromoComparerAPI.Services;
 
@@ -9,13 +8,13 @@ public class OpenAIService : IOpenAIService
 {
     private readonly ChatClient _client;
     private readonly string _imageDirectory = "Assets";
-    //private readonly IPromotionService _promotionService;
+    private readonly IPromotionService _promotionService;
 
 
-    public OpenAIService(string apiKey)
+    public OpenAIService(string apiKey, IPromotionService promotionService)
     {
         _client = new ChatClient(model: "gpt-4o", apiKey: apiKey);
-        //_promotionService = promotionService;
+        _promotionService = promotionService;
 
         if (!Directory.Exists(_imageDirectory))
         {
@@ -53,25 +52,32 @@ public class OpenAIService : IOpenAIService
 
                 Console.WriteLine($"Processing folder: {leafletId}");
 
-                var outputList = new List<string>();
-
-
                 if (Guid.TryParse(leafletId, out Guid guidLeaflet))
                 {
                     Console.WriteLine($"Converted leaflet ID to GUID: {guidLeaflet}");
 
                     var imageFiles = Directory.GetFiles(directory, "*.*")
-                        .Where(file => file.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase));
+                        .Where(file => file.EndsWith(".png", StringComparison.OrdinalIgnoreCase));
 
                     foreach (var file in imageFiles)
                     {
                         var fileName = Path.GetFileName(file);
                         Console.WriteLine($"Processing image: {fileName}");
 
-                        GetJsonPromotions(file);
-                        //outputList.Add(output);
+                        var completion = GetJsonPromotions(file);
 
-                        //_promotionService.CreatePromotion();
+                        try
+                        {
+                            _promotionService.CreatePromotions(completion, guidLeaflet);  // parsowanie danych Promotions do bazy
+                        }
+                        catch (InvalidOperationException ex)
+                        {
+                            Console.WriteLine($"Error processing completion: {ex.Message}");
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Unexpected error: {ex.Message}");
+                        }
                     }
 
 
@@ -88,7 +94,7 @@ public class OpenAIService : IOpenAIService
             Console.WriteLine($"Error parsing images: {ex.Message}");
         }
     }
-    private void GetJsonPromotions(string imageFilePath) //przetwarza zdjęcie na jsona
+    private ChatCompletion GetJsonPromotions(string imageFilePath) //przetwarza zdjęcie na jsona
     {
 
         var categoryName = new List<string>
@@ -154,8 +160,7 @@ public class OpenAIService : IOpenAIService
 
         ChatCompletion completion = _client.CompleteChat(messages, options);
 
-        var output = completion.Content[0].Text;
+        return completion;
 
-        Console.WriteLine(output);
     }
 }

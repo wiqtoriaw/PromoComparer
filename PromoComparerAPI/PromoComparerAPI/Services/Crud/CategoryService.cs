@@ -55,4 +55,63 @@ public class CategoryService : ICategoryService
         categoryDto.Id = category.Id;
         return categoryDto;
     }
+
+    public Guid GetCategoryIdFromCategoryName(string categoryName)
+    {
+        var category = _context.Categories
+            .AsNoTracking()
+            .FirstOrDefault(s => s.Name.ToLower() == categoryName.ToLower());
+
+        if (category == null)
+        {
+            throw new KeyNotFoundException($"Category with name '{categoryName}' not found.");
+        }
+
+        return category.Id;
+    }
+
+    public void CreateCategoryFromList()
+    {
+        var categoryNames = new List<string>
+        {
+            "Artykuły spożywcze",
+            "Chemia gospodarcza i artykuły higieniczne",
+            "Produkty dla dzieci",
+            "Artykuły domowe i dekoracje",
+            "Elektronika",
+            "Odzież i obuwie",
+            "Produkty związane z sezonowymi potrzebami",
+            "Artykuły ogrodowe i DIY",
+            "Zwierzęta domowe"
+        };
+
+        foreach (var categoryName in categoryNames)
+        {
+            try
+            {
+
+                if (_context.Categories.Any(s => s.Name.ToLower() == categoryName.ToLower()))
+                {
+                    throw new InvalidOperationException($"Category '{categoryName}' already exists!");
+                }
+
+                var category = new Category
+                {
+                    Name = categoryName
+                };
+
+                _context.Categories.Add(category);
+                _context.SaveChanges();
+
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Unexpected error for category '{categoryName}': {ex.Message}");
+            }
+        }
+    }
 }

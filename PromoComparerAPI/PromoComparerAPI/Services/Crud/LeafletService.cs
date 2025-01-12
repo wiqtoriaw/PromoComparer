@@ -26,6 +26,7 @@ public class LeafletService : ILeafletService
                 Id = leaflet.Id, 
                 StartDate = leaflet.StartDate,
                 EndDate = leaflet.EndDate,
+                PdfLink = leaflet.PdfLink,
                 StoreId = leaflet.StoreId
             })
             .ToListAsync();
@@ -45,6 +46,7 @@ public class LeafletService : ILeafletService
             Id = leaflet.Id,
             StartDate = leaflet.StartDate,
             EndDate = leaflet.EndDate,
+            PdfLink = leaflet.PdfLink,
             StoreId = leaflet.StoreId
         };
     }
@@ -55,6 +57,7 @@ public class LeafletService : ILeafletService
         {
             StartDate = leafletDto.StartDate,
             EndDate = leafletDto.EndDate,
+            PdfLink = leafletDto.PdfLink,
             StoreId = leafletDto.StoreId
         };
 
@@ -67,7 +70,7 @@ public class LeafletService : ILeafletService
 
     //
 
-    public Guid CreateLeaflet(string dateRange, string shop_stem)
+    public Guid CreateLeaflet(string dateRange, string shop_stem, string pdfLink)
     {
         var dates = dateRange.Split('–');
 
@@ -88,6 +91,7 @@ public class LeafletService : ILeafletService
             {
                 StartDate = startDate,
                 EndDate = endDate,
+                PdfLink = pdfLink,
                 StoreId = storeId
             };
 

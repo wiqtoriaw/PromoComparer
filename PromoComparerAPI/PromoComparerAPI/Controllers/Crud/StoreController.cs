@@ -34,20 +34,20 @@ public class StoreController : Controller
     }
 
 
-    [HttpPost]
-    public async Task<ActionResult<StoreDto>> CreateStore([FromBody] StoreDto storeDto)
-    {
-        try
-        {
-            var createdStore = await _storeService.CreateStoreAsync(storeDto);
-            return CreatedAtRoute("GetStore", new { id = createdStore.Id }, createdStore);
-        }
-        catch (InvalidOperationException ex)
-        {
-            ModelState.AddModelError("", ex.Message);
-            return BadRequest(ModelState);
-        }
-    }
+    //[HttpPost]
+    //public async Task<ActionResult<StoreDto>> CreateStore([FromBody] StoreDto storeDto)
+    //{
+    //    try
+    //    {
+    //        var createdStore = await _storeService.CreateStoreAsync(storeDto);
+    //        return CreatedAtRoute("GetStore", new { id = createdStore.Id }, createdStore);
+    //    }
+    //    catch (InvalidOperationException ex)
+    //    {
+    //        ModelState.AddModelError("", ex.Message);
+    //        return BadRequest(ModelState);
+    //    }
+    //}
 
     [HttpPost("all")]
     public IActionResult CreateStoresFromConf()
