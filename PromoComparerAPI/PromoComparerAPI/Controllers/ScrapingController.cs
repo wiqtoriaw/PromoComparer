@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 using PromoComparerAPI.Interfaces;
+using PromoComparerAPI.Interfaces.Crud;
 
 namespace PromoComparerAPI.Controllers;
 
@@ -9,24 +9,26 @@ namespace PromoComparerAPI.Controllers;
 public class ScrapingController : ControllerBase
 {
     private readonly IPdfHandlerService _pdfHandlerService;
-    private readonly List<string> _shopsList;
+    private readonly IStoreService _storeService;
 
 
-    public ScrapingController(IPdfHandlerService htmlParserService, IConfiguration configuration)
+    public ScrapingController(IPdfHandlerService htmlParserService, IConfiguration configuration, IStoreService storeService)
     {
         _pdfHandlerService = htmlParserService;
-        _shopsList = configuration.GetSection("Shops").Get<List<string>>();
-
-        if (_shopsList == null)
-        {
-            throw new ArgumentNullException(nameof(_shopsList), "The 'Shops' section in the configuration is missing or empty.");
-        }
+        _storeService = storeService;
     }
 
     [HttpGet("download-pdfs")]
     public async Task<IActionResult> DownloadPdfs()
     {
-        foreach (var shop in _shopsList)
+        var shopsList = await _storeService.GetAllStemsAsync();
+
+        if (shopsList == null || shopsList.Count == 0)
+        {
+            NotFound("No shops available to download PDFs.");
+        }
+
+        foreach (var shop in shopsList)
         {
             await _pdfHandlerService.ScrappPromotionData(shop);
         }
@@ -34,7 +36,7 @@ public class ScrapingController : ControllerBase
         return Ok("PDF download process initiated.");
     }
 
-    [HttpGet("download-images")]
+    [HttpGet("convert-images")]
     public IActionResult DownloadImages()
     {
         _pdfHandlerService.ConvertAllPdfsToImagesAndDelete();

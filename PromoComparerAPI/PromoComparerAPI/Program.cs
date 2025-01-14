@@ -1,3 +1,4 @@
+using Coravel;
 using Microsoft.EntityFrameworkCore;
 using PromoComparerAPI.Data;
 using PromoComparerAPI.Interfaces;
@@ -24,7 +25,7 @@ public class Program
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
-        builder.Services.AddScoped<IPdfHandlerService, PdfHandlerService>();
+        builder.Services.AddTransient<IPdfHandlerService, PdfHandlerService>();
         builder.Services.AddScoped<IPromotionService, PromotionService>();
         builder.Services.AddScoped<IStoreService, StoreService>();
         builder.Services.AddScoped<ILeafletService, LeafletService>();
@@ -33,12 +34,23 @@ public class Program
         {
             var apiKey = builder.Configuration["OPENAI_API_KEY"];
             var promotionService = sp.GetRequiredService<IPromotionService>();
+            var categoryService = sp.GetRequiredService<ICategoryService>();
 
-            return new OpenAIService(apiKey, promotionService);
+            return new OpenAIService(apiKey, promotionService, categoryService);
         });
+        builder.Services.AddTransient<Scheduler>();
+
+        // Add Coravel's scheduling services
+        builder.Services.AddScheduler();
 
 
         var app = builder.Build();
+
+        app.Services.UseScheduler(scheduler =>
+        {
+            scheduler.Schedule<Scheduler>()
+                .DailyAt(0, 0);
+        });
 
         // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())

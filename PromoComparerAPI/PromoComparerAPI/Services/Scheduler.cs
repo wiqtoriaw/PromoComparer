@@ -1,36 +1,43 @@
-﻿using PromoComparerAPI.Interfaces;
+﻿using Coravel.Invocable;
+using PromoComparerAPI.Interfaces;
 using PromoComparerAPI.Interfaces.Crud;
-using System.Net.Http;
 
 namespace PromoComparerAPI.Services;
 
-public class Scheduler : IScheduler
+public class Scheduler : IInvocable
 {
     private readonly IPdfHandlerService _pdfHandlerService;
     private readonly IOpenAIService _openAIService;
-    private readonly List<string> _shopsList;
+    private readonly IStoreService _storeService;
 
-    public Scheduler(IConfiguration configuration, IPdfHandlerService pdfHandlerService, IOpenAIService openAIService)
+    public Scheduler(IConfiguration configuration, IPdfHandlerService pdfHandlerService, IOpenAIService openAIService, IStoreService storeService)
     {
-        _shopsList = configuration.GetSection("Shops").Get<List<string>>();
+        _pdfHandlerService = pdfHandlerService ?? throw new ArgumentNullException(nameof(pdfHandlerService));
+        _openAIService = openAIService ?? throw new ArgumentNullException(nameof(openAIService));
+        _storeService = storeService ?? throw new ArgumentNullException(nameof(storeService));
+    }
 
-        if (_shopsList == null)
-        {
-            throw new ArgumentNullException(nameof(_shopsList), "The 'Shops' section in the configuration is missing or empty.");
-        }
-        _openAIService = openAIService;
-        _pdfHandlerService = pdfHandlerService;
+    public async Task Invoke()
+    {
+        await Start();
     }
 
     // stores i categories jednorazowo wprowadzić do bazy
 
-    public void Start()
+    public async Task Start()
     {
-        foreach (var shop in _shopsList)
+        var shopsList = await _storeService.GetAllStemsAsync();
+
+        if (shopsList == null || shopsList.Count == 0)
         {
-            _pdfHandlerService.ScrappPromotionData(shop);  // ściąga pdfy gazetek i parsuje Leaflets do bazy 
+            Console.WriteLine("No shops found. Aborting the task.");
+            return;
+        }
+        foreach (var shop in shopsList)
+        {
+            await _pdfHandlerService.ScrappPromotionData(shop);  // ściąga pdfy gazetek i parsuje Leaflets do bazy 
         }
         _pdfHandlerService.ConvertAllPdfsToImagesAndDelete(); // konwertuje pdfy na zdjęcia i usuwa pdfy
-        _openAIService.ParseImagesToFunction(); //parsuje zdjęcia do promptów openai i wywołuje funkcje parsującą Promotions do bazy
+        await _openAIService.ParseImagesToFunction(); //parsuje zdjęcia do promptów openai i wywołuje funkcje parsującą Promotions do bazy i usuwa przeanalizowane zdjęcia
     }
 }

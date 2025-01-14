@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using PromoComparerAPI.Data;
 using PromoComparerAPI.Interfaces.Crud;
 using PromoComparerAPI.Models.DTOs;
 

@@ -15,12 +15,7 @@ public class StoreService : IStoreService
     public StoreService(ApplicationDbContext context, IConfiguration configuration)
     {
         _context = context;
-        _shopsList = configuration.GetSection("Shops").Get<List<string>>();
-
-        if (_shopsList == null)
-        {
-            throw new ArgumentNullException(nameof(_shopsList), "The 'Shops' section in the configuration is missing or empty.");
-        }
+        _shopsList = configuration.GetSection("Shops").Get<List<string>>() ?? throw new ArgumentNullException(nameof(_shopsList), "The 'Shops' section in the configuration is missing or empty.");
     }
 
     public async Task<IEnumerable<StoreDto>> GetAllStoresAsync()
@@ -41,11 +36,11 @@ public class StoreService : IStoreService
         return new StoreDto { Id = store.Id, Name = store.Name, Stem = store.Stem};
     }
 
-    public Guid GetIdFromStem(string shop_stem)
+    public async Task<Guid> GetIdFromStemAsync(string shop_stem)
     {
-        var store = _context.Stores
+        var store = await _context.Stores
             .AsNoTracking()
-            .FirstOrDefault(s => s.Stem.ToLower() == shop_stem.ToLower());
+            .FirstOrDefaultAsync(s => s.Stem.ToLower() == shop_stem.ToLower());
 
         if (store == null)
         {
@@ -53,6 +48,15 @@ public class StoreService : IStoreService
         }
 
         return store.Id;
+    }
+
+    public async Task<List<string>> GetAllStemsAsync()
+    {
+        var stems = await _context.Stores
+            .Select(store => store.Stem)
+            .ToListAsync();
+
+        return stems;
     }
 
     public async Task<StoreDto> CreateStoreAsync(StoreDto storeDto)
@@ -75,7 +79,7 @@ public class StoreService : IStoreService
         return storeDto;
     }
 
-    public void CreateStoresFromConf()
+    public async Task CreateStoresFromConfAsync() //jednorazowe wprowadzenie sklepów do bazy
     {
         foreach (var shop_stem in _shopsList)
         {
@@ -95,7 +99,7 @@ public class StoreService : IStoreService
 
                 var shop_name = string.Join(" ", shopParts);
 
-                if (_context.Stores.Any(s => s.Name.ToLower() == shop_name.ToLower()))
+                if (await _context.Stores.AnyAsync(s => s.Name.ToLower() == shop_name.ToLower()))
                 {
                     throw new InvalidOperationException($"Store '{shop_name}' already exists!");
                 }
@@ -107,7 +111,7 @@ public class StoreService : IStoreService
                 };
 
                 _context.Stores.Add(store);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
 
                 Console.WriteLine($"Added store: {shop_name}");
             }

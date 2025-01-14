@@ -12,11 +12,13 @@ public class PromotionService : IPromotionService
 {
     private readonly ApplicationDbContext _context;
     private readonly ICategoryService _categoryService;
+    private readonly ILeafletService _leafletService;
 
-    public PromotionService(ApplicationDbContext context, ICategoryService categoryService)
+    public PromotionService(ApplicationDbContext context, ICategoryService categoryService, ILeafletService leafletService)
     {
         _context = context;
         _categoryService = categoryService;
+        _leafletService = leafletService;
     }
     public async Task<IEnumerable<PromotionDto>> GetAllPromotionsAsync()
     {
@@ -113,7 +115,7 @@ public class PromotionService : IPromotionService
         return promotionDto;
     }
 
-    public void CreatePromotions(ChatCompletion completion, Guid guidLeaflet)   //TODO!!!!!!
+    public async Task CreatePromotionsAsync(ChatCompletion completion, Guid guidLeaflet)
     {
         try
         {
@@ -133,42 +135,53 @@ public class PromotionService : IPromotionService
 
                     foreach (JsonElement promotion in promotions.EnumerateArray())
                     {
+
                         string productName = promotion.GetProperty("ProductName").GetString();
-                        string unitType = promotion.GetProperty("UnitType").GetString();
-                        decimal originalPrice = promotion.GetProperty("OriginalPrice").GetDecimal();
-                        decimal priceAfterPromotion = promotion.GetProperty("PriceAfterPromotion").GetDecimal();
-                        string promotionType = promotion.GetProperty("PromotionType").GetString();
-                        DateTime startDate = promotion.GetProperty("StartDate").GetDateTime();
-                        DateTime endDate = promotion.GetProperty("EndDate").GetDateTime();
+
+                        string? unitType = promotion.GetProperty("UnitType").GetString() ?? null;
+
+                        decimal? originalPrice = promotion.GetProperty("OriginalPrice").ValueKind == JsonValueKind.Number
+                            ? promotion.GetProperty("OriginalPrice").GetDecimal()
+                            : (decimal?)null;
+
+                        decimal? priceAfterPromotion = promotion.GetProperty("PriceAfterPromotion").ValueKind == JsonValueKind.Number
+                            ? promotion.GetProperty("PriceAfterPromotion").GetDecimal()
+                            : (decimal?)null;
+
+                        string? promotionType = promotion.GetProperty("PromotionType").GetString() ?? null;
+
+                        DateTime? startDate = promotion.GetProperty("StartDate").ValueKind == JsonValueKind.String
+                            ? (DateTime?)promotion.GetProperty("StartDate").GetDateTime().Date
+                            : null;
+
+                        DateTime? endDate = promotion.GetProperty("EndDate").ValueKind == JsonValueKind.String
+                            ? (DateTime?)promotion.GetProperty("EndDate").GetDateTime().Date.Add(new TimeSpan(23, 59, 59))
+                            : null;
+
                         bool untilOutOfStock = promotion.GetProperty("UntilOutOfStock").GetBoolean();
-                        string requiredApp = promotion.GetProperty("RequiredApp").GetString();
+
+                        string? requiredApp = promotion.GetProperty("RequiredApp").GetString() ?? null;
+
                         string categoryName = promotion.GetProperty("Category").GetString();
+                        Guid categoryId = await _categoryService.GetCategoryIdFromCategoryNameAsync(categoryName);
 
-                        Guid categoryId = _categoryService.GetCategoryIdFromCategoryName(categoryName);
+                        var promotionToDatabase = new Promotion
+                        {
+                            ProductName = productName,
+                            UnitType = unitType,
+                            OriginalPrice = originalPrice,
+                            PriceAfterPromotion = priceAfterPromotion,
+                            PromotionType = promotionType,
+                            StartDate = startDate,
+                            EndDate = endDate,
+                            UntilOutOfStock = untilOutOfStock,
+                            RequiredApp = requiredApp,
+                            CategoryId = categoryId,
+                            LeafletId = guidLeaflet
+                        };
 
-
-
-                        //Console.WriteLine(productName, unitType, originalPrice, priceAfterPromotion, )
-
-
-                        //var promotionToDatabase = new Promotion
-                        //{
-                        //    ProductName = productName,
-                        //    UnitType = unitType,
-                        //    OriginalPrice = originalPrice,
-                        //    PriceAfterPromotion = priceAfterPromotion,
-                        //    PromotionType = promotionType,
-                        //    StartDate = startDate,
-                        //    EndDate = endDate,
-                        //    UntilOutOfStock = untilOutOfStock,
-                        //    RequiredApp = requiredApp,
-                        //    CategoryId = categoryId,
-                        //    LeafletId = guidLeaflet
-                        //};
-
-                        //_context.Promotions.Add(promotionToDatabase);
-                        //_context.SaveChanges();
-
+                        _context.Promotions.Add(promotionToDatabase);
+                        await _context.SaveChangesAsync();
 
                     }
                 }

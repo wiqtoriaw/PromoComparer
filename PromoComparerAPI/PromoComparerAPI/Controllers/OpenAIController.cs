@@ -14,18 +14,10 @@ public class OpenAIController : ControllerBase
         _openAIService = openAIService;
     }
 
-
-    [HttpGet]
-    public async Task<IActionResult> GetComplition()
-    {
-        await _openAIService.Example05_VisionAsync();
-        return Ok("OpenAI succesfully integrated.");
-    }
-
     [HttpPost]
-    public IActionResult ParseImagesToFunction()
+    public async Task<IActionResult> ParseImagesToFunction()
     {
-        _openAIService.ParseImagesToFunction();
+        await _openAIService.ParseImagesToFunction();
         return Ok("OpenAI succesfully integrated.");
     }
 }

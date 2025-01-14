@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using PromoComparerAPI.Data;
 using PromoComparerAPI.Interfaces.Crud;
 using PromoComparerAPI.Models.DTOs;
 
@@ -48,11 +47,11 @@ public class CategoryController : Controller
     //}
 
     [HttpPost("from-list")]   // jednorazowe - wprowadza już dane z wypisanej listy
-    public IActionResult CreateCategoryFromList()
+    public async Task<IActionResult> CreateCategoryFromList()
     {
         try
         {
-            _categoryService.CreateCategoryFromList();
+            await _categoryService.CreateCategoryFromListAsync();
             return Ok();
         }
         catch (InvalidOperationException ex)

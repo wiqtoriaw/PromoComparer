@@ -9,12 +9,14 @@ public class OpenAIService : IOpenAIService
     private readonly ChatClient _client;
     private readonly string _imageDirectory = "Assets";
     private readonly IPromotionService _promotionService;
+    private readonly ICategoryService _categoryService;
 
 
-    public OpenAIService(string apiKey, IPromotionService promotionService)
+    public OpenAIService(string apiKey, IPromotionService promotionService, ICategoryService categoryService)
     {
         _client = new ChatClient(model: "gpt-4o", apiKey: apiKey);
         _promotionService = promotionService;
+        _categoryService = categoryService;
 
         if (!Directory.Exists(_imageDirectory))
         {
@@ -22,26 +24,7 @@ public class OpenAIService : IOpenAIService
         }
     }
 
-    public async Task Example05_VisionAsync()
-    {
-
-        string imageFilePath = Path.Combine("Assets", "image.jpg");
-        using Stream imageStream = File.OpenRead(imageFilePath);
-        BinaryData imageBytes = BinaryData.FromStream(imageStream);
-
-        List<ChatMessage> messages =
-        [
-            new UserChatMessage(
-                ChatMessageContentPart.CreateTextPart("Please describe the following image."),
-                ChatMessageContentPart.CreateImagePart(imageBytes, "image/jpg")),
-        ];
-
-        ChatCompletion completion = await _client.CompleteChatAsync(messages);
-
-        Console.WriteLine($"[ASSISTANT]: {completion.Content[0].Text}");
-    }
-
-    public void ParseImagesToFunction()  // parsuje zdjecia do funkcji 
+    public async Task ParseImagesToFunction()  // parsuje zdjecia do funkcji 
     {
         try
         {
@@ -54,8 +37,6 @@ public class OpenAIService : IOpenAIService
 
                 if (Guid.TryParse(leafletId, out Guid guidLeaflet))
                 {
-                    Console.WriteLine($"Converted leaflet ID to GUID: {guidLeaflet}");
-
                     var imageFiles = Directory.GetFiles(directory, "*.*")
                         .Where(file => file.EndsWith(".png", StringComparison.OrdinalIgnoreCase));
 
@@ -64,11 +45,12 @@ public class OpenAIService : IOpenAIService
                         var fileName = Path.GetFileName(file);
                         Console.WriteLine($"Processing image: {fileName}");
 
-                        var completion = GetJsonPromotions(file);
+                        var completion = await GetJsonPromotions(file);
 
                         try
                         {
-                            _promotionService.CreatePromotions(completion, guidLeaflet);  // parsowanie danych Promotions do bazy
+                            await _promotionService.CreatePromotionsAsync(completion, guidLeaflet);  // parsowanie danych Promotions do bazy
+                            //File.Delete(file); // usuwanie zdjęcia z pamięci
                         }
                         catch (InvalidOperationException ex)
                         {
@@ -94,21 +76,10 @@ public class OpenAIService : IOpenAIService
             Console.WriteLine($"Error parsing images: {ex.Message}");
         }
     }
-    private ChatCompletion GetJsonPromotions(string imageFilePath) //przetwarza zdjęcie na jsona
+    private async Task<ChatCompletion> GetJsonPromotions(string imageFilePath) //przetwarza zdjęcie na jsona
     {
 
-        var categoryName = new List<string>
-        {
-            "Artykuły spożywcze",
-            "Chemia gospodarcza i artykuły higieniczne",
-            "Produkty dla dzieci",
-            "Artykuły domowe i dekoracje",
-            "Elektronika",
-            "Odzież i obuwie",
-            "Produkty związane z sezonowymi potrzebami",
-            "Artykuły ogrodowe i DIY",
-            "Zwierzęta domowe"
-        };
+        var categoryNames = await _categoryService.GetAllCategoriesAsync();
 
         using Stream imageStream = File.OpenRead(imageFilePath);
         BinaryData imageBytes = BinaryData.FromStream(imageStream);
@@ -123,14 +94,14 @@ public class OpenAIService : IOpenAIService
             {{
                 ""ProductName"": ""string"",
                 ""UnitType"": ""string"",
-                ""OriginalPrice"": ""number"",
+                ""OriginalPrice"": ""number or null"",
                 ""PriceAfterPromotion"": ""number"",
-                ""PromotionType"": ""string"",
-                ""StartDate"": ""string (ISO 8601 format)"",
-                ""EndDate"": ""string (ISO 8601 format)"",
+                ""PromotionType"": ""string or null"",
+                ""StartDate"": ""string (ISO 8601 format) or null"",
+                ""EndDate"": ""string (ISO 8601 format) or null"",
                 ""UntilOutOfStock"": ""boolean"",
-                ""RequiredApp"": ""string"",
-                ""Category"": ""one of {string.Join(", ", categoryName)}""
+                ""RequiredApp"": ""string or null"",
+                ""Category"": ""one of {string.Join(", ", categoryNames)}""
             }}]
         }}
 
@@ -140,8 +111,6 @@ public class OpenAIService : IOpenAIService
         - If a size is provided and is an important element of the promotion, include it in the product name.
         - If a brand name is provided, include it in ProductName in the format ""brand_name product_name"" or ""brand_name product_name product_size"".
         - If ""buy now online"" or ""online only"" or similar is mentioned, include this in RequiredApp.
-        - Do not include LeafletId.
-        - Replace CategoryId with Category, which should be one of: {string.Join(", ", categoryName)}.
 
         Please process the image and return the promotions found in the specified JSON format.
         ";
