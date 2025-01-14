@@ -1,6 +1,5 @@
 ﻿using HtmlAgilityPack;
 using ImageMagick;
-using Microsoft.EntityFrameworkCore;
 using PromoComparerAPI.Data;
 using PromoComparerAPI.Interfaces;
 using PromoComparerAPI.Interfaces.Crud;
@@ -10,7 +9,6 @@ namespace PromoComparerAPI.Services;
 public class PdfHandlerService : IPdfHandlerService
 {
     private readonly HttpClient _httpClient;
-    private readonly List<string> _shopsList;
     private readonly string _pdfDirectory = "Pdfs";
     private readonly string _imageDirectory = "Assets";
     private readonly ILeafletService _leafletService;
@@ -21,7 +19,6 @@ public class PdfHandlerService : IPdfHandlerService
     public PdfHandlerService(IConfiguration configuration, ILeafletService leafletService, IOpenAIService openAIService, ApplicationDbContext context)
     {
         _httpClient = new HttpClient();
-        _shopsList = configuration.GetSection("Shops").Get<List<string>>();
 
         if (!Directory.Exists(_imageDirectory))
         {
@@ -31,91 +28,11 @@ public class PdfHandlerService : IPdfHandlerService
         {
             Directory.CreateDirectory(_pdfDirectory);
         }
-        if (_shopsList == null)
-        {
-            throw new ArgumentNullException(nameof(_shopsList), "The 'Shops' section in the configuration is missing or empty.");
-        }
 
         _leafletService = leafletService;
         _openAIService = openAIService;
         _context = context;
     }
-
-    //public async Task ScrappPromotionData(string shop)
-    //{
-    //    try
-    //    {
-    //        var urlPart = "https://www.gazetkipromocyjne.net/";
-    //        var url = $"{urlPart}{shop}/";
-
-    //        var htmlContent = await _httpClient.GetStringAsync(url);
-    //        var htmlDocument = new HtmlDocument();
-    //        htmlDocument.LoadHtml(htmlContent);
-
-    //        var newspapperFooterNodes = htmlDocument.DocumentNode.SelectNodes("//div[contains(@class, 'newspapper-footer')]");
-    //        if (newspapperFooterNodes != null)
-    //        {
-    //            var shopDirectory = Path.Combine(_pdfDirectory, shop);
-    //            if (!Directory.Exists(shopDirectory))
-    //            {
-    //                Directory.CreateDirectory(shopDirectory);
-    //            }
-    //            foreach (var newspapperFooterNode in newspapperFooterNodes)  //dla każdej gazetki
-    //            {
-    //                var buttonNode = newspapperFooterNode.SelectSingleNode(".//button[contains(@class, 'newspapper-btn')]");
-    //                var pNode = newspapperFooterNode.SelectSingleNode(".//p");
-
-    //                if (buttonNode != null && pNode != null)
-    //                {
-    //                    var relValue = buttonNode.GetAttributeValue("rel", string.Empty);
-    //                    var id = relValue.StartsWith("#") ? relValue.Substring(1) : relValue;
-    //                    var dates = pNode.InnerText.Trim();
-
-    //                    var divId = $"{id}";
-    //                    var divNode = htmlDocument.DocumentNode.SelectSingleNode($"//div[@id='{divId}' and contains(@class, 'newspapper-preview')]");
-
-    //                    if (divNode != null)
-    //                    {
-    //                        var downloadLinkNode = divNode.SelectSingleNode(".//a[contains(@class, 'newspapper-nav-download')]");
-    //                        if (downloadLinkNode != null)
-    //                        {
-    //                            var pdfLink = downloadLinkNode.GetAttributeValue("href", string.Empty);  //wyciągamy link gazetki
-
-    //                            if (!string.IsNullOrEmpty(pdfLink))
-    //                            {
-    //                                var fileName = Path.GetFileName(new Uri(pdfLink).LocalPath);
-    //                                var fullPath = Path.Combine(shopDirectory, fileName);
-    //                                if (File.Exists(fullPath))
-    //                                {
-    //                                    Console.WriteLine($"File already exists for ID {id}: {fileName}. Skipping download.");
-    //                                }
-    //                                else        //dodajemy gazetkę do bazy i zapisujemy pdf
-    //                                {
-    //                                    var leafletId = _leafletService.CreateLeaflet(dates, shop);  // tworzenie gazetki
-    //                                    fileName = $"{leafletId}.pdf";
-    //                                    fullPath = Path.Combine(shopDirectory, fileName);
-    //                                                                                                                        //TODO: przenieść do oddzielnej funkcji
-    //                                    await DownloadFileAsync(pdfLink, fullPath);     // zapisanie pdf
-
-    //                                    ConvertAllPdfsToImagesAndDelete();     // konwertowanie pdf na zdjecia
-    //                                }
-    //                            }
-    //                            else
-    //                            {
-    //                                Console.WriteLine($"Error processing PDF for {id}");
-    //                            }
-    //                        }
-    //                    }
-    //                }
-    //            }
-    //        }
-
-    //    }
-    //    catch (Exception ex)
-    //    {
-    //        Console.WriteLine($"Error processing PDFs: {ex.Message}");
-    //    }
-    //}
 
     public async Task ScrappPromotionData(string shop)
     {
@@ -127,7 +44,7 @@ public class PdfHandlerService : IPdfHandlerService
             var newspapperFooterNodes = htmlDocument.DocumentNode.SelectNodes("//div[contains(@class, 'newspapper-footer')]");
             if (newspapperFooterNodes != null)
             {
-                ProcessNewspaperNodes(newspapperFooterNodes, shop, htmlDocument);
+                await ProcessNewspaperNodes(newspapperFooterNodes, shop, htmlDocument);
             }
         }
         catch (Exception ex)
@@ -144,7 +61,7 @@ public class PdfHandlerService : IPdfHandlerService
         return htmlDocument;
     }
 
-    private void ProcessNewspaperNodes(HtmlNodeCollection newspapperFooterNodes, string shop, HtmlDocument htmlDocument)
+    private async Task ProcessNewspaperNodes(HtmlNodeCollection newspapperFooterNodes, string shop, HtmlDocument htmlDocument)
     {
         var shopDirectory = Path.Combine(_pdfDirectory, shop);
         if (!Directory.Exists(shopDirectory))
@@ -174,7 +91,7 @@ public class PdfHandlerService : IPdfHandlerService
                         var pdfLink = downloadLinkNode.GetAttributeValue("href", string.Empty);
                         if (!string.IsNullOrEmpty(pdfLink))
                         {
-                            DownloadAndSavePdf(pdfLink, dates, shopDirectory, shop);
+                            await DownloadAndSavePdf(pdfLink, dates, shopDirectory, shop);
                         }
                         else
                         {
@@ -186,18 +103,18 @@ public class PdfHandlerService : IPdfHandlerService
         }
     }
 
-    private async void DownloadAndSavePdf(string pdfLink, string dates, string shopDirectory, string shop)
+    private async Task DownloadAndSavePdf(string pdfLink, string dates, string shopDirectory, string shop)
     {
         var fileName = Path.GetFileName(new Uri(pdfLink).LocalPath);
         var fullPath = Path.Combine(shopDirectory, fileName);
 
         if (_context.Leaflets.Any(s => s.PdfLink.ToLower() == pdfLink.ToLower()))
         {
-            Console.WriteLine($"File already exists for {fileName}. Skipping download."); //TODO: trzeba sprawdzić czy działa
+            Console.WriteLine($"File already exists for {fileName}. Skipping download.");
         }
         else
         {
-            var leafletId = _leafletService.CreateLeaflet(dates, shop, pdfLink);   // parsuje Leaflet do bazy
+            var leafletId = await _leafletService.CreateLeafletAsync(dates, shop, pdfLink);   // parsuje Leaflet do bazy
             fileName = $"{leafletId}.pdf";
             fullPath = Path.Combine(shopDirectory, fileName);
 

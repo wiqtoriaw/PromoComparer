@@ -9,5 +9,5 @@ public interface IPromotionService
     Task<IEnumerable<PromotionDto>> GetAllPromotionsAsync();
     Task<PromotionDto> GetPromotionByIdAsync(Guid id);
     Task<PromotionDto> CreatePromotionAsync(PromotionDto promotionDto);
-    void CreatePromotions(ChatCompletion completion, Guid guidLeaflet);
+    Task CreatePromotionsAsync(ChatCompletion completion, Guid guidLeaflet);
 }

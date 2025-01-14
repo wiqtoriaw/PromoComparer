@@ -12,7 +12,7 @@ using PromoComparerAPI.Data;
 namespace PromoComparerAPI.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250112123027_InitialSetup")]
+    [Migration("20250112130106_InitialSetup")]
     partial class InitialSetup
     {
         /// <inheritdoc />

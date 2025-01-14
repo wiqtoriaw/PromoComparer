@@ -50,9 +50,9 @@ public class StoreController : Controller
     //}
 
     [HttpPost("all")]
-    public IActionResult CreateStoresFromConf()
+    public async Task<IActionResult> CreateStoresFromConf()
     {
-        _storeService.CreateStoresFromConf();
+        await _storeService.CreateStoresFromConfAsync();
         return Ok();
     }
 }

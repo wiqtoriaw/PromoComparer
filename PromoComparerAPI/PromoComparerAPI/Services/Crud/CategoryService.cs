@@ -15,14 +15,10 @@ public class CategoryService : ICategoryService
         _context = context;
     }
 
-    public async Task<IEnumerable<CategoryDto>> GetAllCategoriesAsync()
+    public async Task<List<string>> GetAllCategoriesAsync() // wykorzystane w OpenAIService
     {
         return await _context.Categories
-            .Select(category => new CategoryDto
-            {
-                Id = category.Id,
-                Name = category.Name
-            })
+            .Select(category => category.Name)
             .ToListAsync();
     }
 
@@ -56,11 +52,11 @@ public class CategoryService : ICategoryService
         return categoryDto;
     }
 
-    public Guid GetCategoryIdFromCategoryName(string categoryName)
+    public async Task<Guid> GetCategoryIdFromCategoryNameAsync(string categoryName) // wykorzystane w PromotionService
     {
-        var category = _context.Categories
+        var category = await _context.Categories
             .AsNoTracking()
-            .FirstOrDefault(s => s.Name.ToLower() == categoryName.ToLower());
+            .FirstOrDefaultAsync(s => s.Name.ToLower() == categoryName.ToLower());
 
         if (category == null)
         {
@@ -70,7 +66,7 @@ public class CategoryService : ICategoryService
         return category.Id;
     }
 
-    public void CreateCategoryFromList()
+    public async Task CreateCategoryFromListAsync() //jednorazowe wywołanie
     {
         var categoryNames = new List<string>
         {
@@ -90,7 +86,7 @@ public class CategoryService : ICategoryService
             try
             {
 
-                if (_context.Categories.Any(s => s.Name.ToLower() == categoryName.ToLower()))
+                if (await _context.Categories.AnyAsync(s => s.Name.ToLower() == categoryName.ToLower()))
                 {
                     throw new InvalidOperationException($"Category '{categoryName}' already exists!");
                 }
@@ -101,7 +97,7 @@ public class CategoryService : ICategoryService
                 };
 
                 _context.Categories.Add(category);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
 
             }
             catch (InvalidOperationException ex)
