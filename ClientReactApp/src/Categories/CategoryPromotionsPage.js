@@ -2,7 +2,8 @@ import React from 'react';
 import { useParams } from 'react-router-dom';
 import promotionsData from '../dummyData/promotionsData';
 import categoriesData from '../dummyData/categoriesData';
-import Promotions from './Promotions';
+import Promotions from '../Promotions/Promotions';
+import './CategoryPromotionsPage.css'; // Import stylu dla strony
 
 const CategoryPromotionsPage = () => {
   const { id } = useParams();
@@ -15,9 +16,9 @@ const CategoryPromotionsPage = () => {
   const filteredPromotions = promotionsData.filter(promo => promo.category === category.name);
 
   return (
-    <div>
+    <div className="category-promotions-page">
       <h2>🎯 Promocje dla kategorii: {category.name}</h2>
-      <Promotions dataSource={filteredPromotions} title={`Promocje: ${category.name}`} />
+      <Promotions dataSource={filteredPromotions} />
     </div>
   );
 };

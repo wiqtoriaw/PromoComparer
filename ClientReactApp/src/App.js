@@ -7,7 +7,8 @@ import TopPromotions from './Promotions/TopPromotionsPage';
 import ShopsPage from './Shops/ShopsPage';
 import ShopPromotionsPage from './Shops/ShopPromotionsPage';
 import CategoriesPage from './Categories/CategoriesPage';
-import CategoryPromotionsPage from './Promotions/CategoryPromotionsPage';
+import CategoryPromotionsPage from './Categories/CategoryPromotionsPage';
+import SearchPromotionsPage from './Promotions/SearchPromotionsPage';
 
 
 function App() {
@@ -24,6 +25,7 @@ function App() {
           <Route path="/promotions" element={<Promotions />} />
           <Route path="/categories" element={<CategoriesPage />} />
           <Route path="/categories/:id/promotions" element={<CategoryPromotionsPage />} />
+          <Route path="/search" element={<SearchPromotionsPage />} />
         </Routes>
       </main>
     </Router>

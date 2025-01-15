@@ -1,7 +1,7 @@
 /* src/Shops/ShopsPage.css */
 
 .shops-container {
-    padding: 20px;
+    padding: 90px 20px 20px; /* Uwzględnienie nawigacji fixed */
     background-color: #f9fafc;
   }
   

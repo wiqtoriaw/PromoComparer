@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import Promotions from '../Promotions/Promotions';
 import useShopPromotionsData from '../hooks/useShopPromotionsData';
 import shopsData from '../dummyData/shopsData';
+import './ShopPromotionsPage.css'; // Import nowego stylu
 
 const ShopPromotionsPage = () => {
   const { id } = useParams();
@@ -15,7 +16,7 @@ const ShopPromotionsPage = () => {
   if (promotions.length === 0) return <p>ℹ️ Brak promocji dla sklepu {shop.name}.</p>;
 
   return (
-    <div>
+    <div className="shop-promotions-page">
       <Promotions dataSource={promotions} title={`Promocje dla sklepu ${shop.name}`} />
     </div>
   );
