@@ -12,11 +12,10 @@ public class PdfHandlerService : IPdfHandlerService
     private readonly string _pdfDirectory = "Pdfs";
     private readonly string _imageDirectory = "Assets";
     private readonly ILeafletService _leafletService;
-    private readonly IOpenAIService _openAIService;
     private readonly ApplicationDbContext _context;
 
 
-    public PdfHandlerService(IConfiguration configuration, ILeafletService leafletService, IOpenAIService openAIService, ApplicationDbContext context)
+    public PdfHandlerService(IConfiguration configuration, ILeafletService leafletService, ApplicationDbContext context)
     {
         _httpClient = new HttpClient();
 
@@ -30,7 +29,6 @@ public class PdfHandlerService : IPdfHandlerService
         }
 
         _leafletService = leafletService;
-        _openAIService = openAIService;
         _context = context;
     }
 

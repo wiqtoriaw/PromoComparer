@@ -44,6 +44,17 @@ public class Program
         builder.Services.AddScheduler();
 
 
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("AllowAll", builder =>
+            {
+                builder.AllowAnyOrigin()
+                       .AllowAnyMethod()
+                       .AllowAnyHeader();
+            });
+        });
+
+
         var app = builder.Build();
 
         app.Services.UseScheduler(scheduler =>
@@ -51,6 +62,8 @@ public class Program
             scheduler.Schedule<Scheduler>()
                 .DailyAt(0, 0);
         });
+
+        app.UseCors("AllowAll");
 
         // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())

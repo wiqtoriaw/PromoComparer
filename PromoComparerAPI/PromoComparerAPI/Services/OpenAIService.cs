@@ -79,7 +79,7 @@ public class OpenAIService : IOpenAIService
     private async Task<ChatCompletion> GetJsonPromotions(string imageFilePath) //przetwarza zdjęcie na jsona
     {
 
-        var categoryNames = await _categoryService.GetAllCategoriesAsync();
+        var categoryNames = await _categoryService.GetAllCategoriesListAsync();
 
         using Stream imageStream = File.OpenRead(imageFilePath);
         BinaryData imageBytes = BinaryData.FromStream(imageStream);
@@ -101,11 +101,13 @@ public class OpenAIService : IOpenAIService
                 ""EndDate"": ""string (ISO 8601 format) or null"",
                 ""UntilOutOfStock"": ""boolean"",
                 ""RequiredApp"": ""string or null"",
-                ""Category"": ""one of {string.Join(", ", categoryNames)}""
+                ""Category"": ""only one of {string.Join(", ", categoryNames)}""
             }}]
         }}
 
-        - If only one price is provided, assign it to PriceAfterPromotion.
+        - Today's date is {DateTime.Now.ToString("yyyy-MM-dd")}, and promotions or flyers might be close to this date.
+        - If only one price is provided, assign it to PriceAfterPromotion. If PriceAfterPromotion is not available, do not return that product in the list.        
+        - Ensure that the PriceAfterPromotion is always lower than OriginalPrice whenever OriginalPrice is provided.    
         - Provide only the JSON without any additional comments.
         - If there are no products visible in the image, skip processing the image and return just empty list.
         - If a size is provided and is an important element of the promotion, include it in the product name.

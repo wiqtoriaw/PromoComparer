@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <Platforms>AnyCPU;x64</Platforms>
+    <GenerateDocumentationFile>False</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -37,6 +38,7 @@
 
   <ItemGroup>
     <Folder Include="Assets\" />
+    <Folder Include="Pdfs\" />
   </ItemGroup>
 
 </Project>
