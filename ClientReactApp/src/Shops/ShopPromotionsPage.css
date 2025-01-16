@@ -1,0 +1,22 @@
+/* Stylizacja dla ShopPromotionsPage */
+.shop-promotions-page {
+    padding: 90px 20px 20px; /* Uwzględnienie nawigacji fixed */
+    background-color: #f9fafc;
+    min-height: 100vh; /* Pełna wysokość widoku przeglądarki */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .shop-promotions-page h2 {
+    font-size: 1.8em;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  
+  .shop-promotions-page .promotions-container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
