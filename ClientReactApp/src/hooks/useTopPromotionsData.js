@@ -1,20 +1,20 @@
 import { useState, useEffect } from 'react';
 
-const useShopsData = () => {
-  const [shops, setShops] = useState([]); // Rename to 'shops'
+const useTopPromotionsData = () => {
+  const [topPromotions, setTopPromotions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchShops = async () => {
+    const fetchTopPromotions = async () => {
       try {
         console.log('🌐 Pobieranie danych z API');
-        const response = await fetch('http://localhost:5068/api/stores');
+        const response = await fetch('http://localhost:5068/api/top');
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
         const data = await response.json();
-        setShops(data); // Update to 'shops'
+        setTopPromotions(data);
       } catch (err) {
         console.error('❌ Błąd podczas pobierania danych:', err);
         setError(err.message);
@@ -23,10 +23,10 @@ const useShopsData = () => {
       }
     };
 
-    fetchShops();
+    fetchTopPromotions();
   }, []);
 
-  return { shops, loading, error }; // Update to return 'shops'
+  return { topPromotions, loading, error };
 };
 
-export default useShopsData;
+export default useTopPromotionsData;

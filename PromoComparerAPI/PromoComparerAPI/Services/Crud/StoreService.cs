@@ -50,7 +50,7 @@ public class StoreService : IStoreService
         return store.Id;
     }
 
-    public async Task<List<string>> GetAllStemsAsync()
+    public async Task<List<string>> GetAllStemsAsync() //potrzebne do scrapowania
     {
         var stems = await _context.Stores
             .Select(store => store.Stem)

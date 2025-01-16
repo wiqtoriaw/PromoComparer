@@ -1,9 +1,10 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import categoriesData from '../dummyData/categoriesData';
+import useCategoryData from '../hooks/useCategoryData';
 import './CategoriesPage.css';
 
 const CategoriesPage = () => {
+  const { categories, loading, error } = useCategoryData();
   const navigate = useNavigate();
 
   // Obsługa zmiany wyboru kategorii
@@ -14,6 +15,9 @@ const CategoriesPage = () => {
     }
   };
 
+  if (loading) return <p>⏳ Ładowanie listy kategorii...</p>;
+  if (error) return <p>❌ Błąd: {error}</p>;
+
   return (
     <div className="categories-container">
       <h2>🎯 Wybierz kategorię produktów</h2>
@@ -22,7 +26,7 @@ const CategoriesPage = () => {
           <option value="" disabled>
             Wybierz kategorię
           </option>
-          {categoriesData.map(category => (
+          {categories.map(category => (
             <option key={category.id} value={category.id}>
               {category.name}
             </option>

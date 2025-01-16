@@ -6,14 +6,14 @@ import { useNavigate } from 'react-router-dom';
 import './ShopsPage.css';
 
 const ShopsPage = () => {
-  const { shops, loading, error } = useShopsData();
+  const { shops = [], loading, error } = useShopsData(); // Default to [] here
   const navigate = useNavigate();
 
   if (loading) return <p>⏳ Ładowanie listy sklepów...</p>;
   if (error) return <p>❌ Błąd: {error}</p>;
 
   const handleShopClick = (id) => {
-    navigate(`/shops/${id}/promotions`);
+    navigate(`/activepromotions/store/${id}`);
   };
 
   return (
@@ -23,8 +23,6 @@ const ShopsPage = () => {
         {shops.map(shop => (
           <div key={shop.id} className="shop-card" onClick={() => handleShopClick(shop.id)}>
             <h3>📍 {shop.name}</h3>
-            <p>🛣️ <strong>Ulica:</strong> {shop.street}</p>
-            <p>🏙️ <strong>Miasto:</strong> {shop.city}</p>
           </div>
         ))}
       </div>

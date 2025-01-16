@@ -1,21 +1,15 @@
 import { useState, useEffect } from 'react';
 
-const useShopPromotionsData = (shopId) => {
+const usePromotionsData = () => {
   const [promotions, setPromotions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!shopId) {
-      setError('Brak ID sklepu');
-      setLoading(false);
-      return;
-    }
-
-    const fetchShopPromotions = async () => {
+    const fetchPromotions = async () => {
       try {
-        console.log(`🌐 Pobieranie promocji dla sklepu o ID: ${shopId}`);
-        const response = await fetch(`http://localhost:5068/api/activepromotions/store/${shopId}`);
+        console.log('🌐 Pobieranie danych z API');
+        const response = await fetch('http://localhost:5068/api/activepromotions');
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
@@ -29,10 +23,10 @@ const useShopPromotionsData = (shopId) => {
       }
     };
 
-    fetchShopPromotions();
-  }, [shopId]);
+    fetchPromotions();
+  }, []);
 
   return { promotions, loading, error };
 };
 
-export default useShopPromotionsData;
+export default usePromotionsData;

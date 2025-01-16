@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using OpenAI.Chat;
 using PromoComparerAPI.Data;
 using PromoComparerAPI.Interfaces.Crud;
@@ -66,13 +67,14 @@ public class PromotionService : IPromotionService
         };
     }
 
-    public async Task<IEnumerable<PromotionDto>> GetActivePromotionsAsync()
+    public async Task<IEnumerable<ActivePromotionDto>> GetActivePromotionsAsync()
     {
         var currentDate = DateTime.Now;
 
         var promotions = await _context.Promotions
-            .Where(p => p.StartDate <= currentDate && p.EndDate >= currentDate)
-            .Select(promotion => new PromotionDto
+            .Where(p => (p.StartDate ?? p.Leaflet.StartDate) <= currentDate &&
+                        (p.EndDate ?? p.Leaflet.EndDate) >= currentDate)
+            .Select(promotion => new ActivePromotionDto
             {
                 Id = promotion.Id,
                 ProductName = promotion.ProductName,
@@ -80,17 +82,147 @@ public class PromotionService : IPromotionService
                 OriginalPrice = promotion.OriginalPrice,
                 PriceAfterPromotion = promotion.PriceAfterPromotion,
                 PromotionType = promotion.PromotionType,
-                StartDate = promotion.StartDate,
-                EndDate = promotion.EndDate,
+                StartDate = promotion.StartDate ?? promotion.Leaflet.StartDate,  // Sprawdzamy i przypisujemy datę z Leaflet dla StartDate
+                EndDate = promotion.EndDate ?? promotion.Leaflet.EndDate,        // Sprawdzamy i przypisujemy datę z Leaflet dla EndDate
                 UntilOutOfStock = promotion.UntilOutOfStock,
                 RequiredApp = promotion.RequiredApp,
-                CategoryId = promotion.CategoryId,
-                LeafletId = promotion.LeafletId
+                CategoryName = promotion.Category.Name,
+                StoreName = promotion.Leaflet.Store.Name
             })
             .ToListAsync();
 
         return promotions;
     }
+
+
+    public async Task<IEnumerable<TopActivePromotionDto>> GetTopPromotionsAsync()
+    {
+        var results = new List<TopActivePromotionDto>();
+
+        using (var connection = _context.Database.GetDbConnection())
+        {
+            await connection.OpenAsync();
+
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = "GetTop10LargestPromotions";
+                command.CommandType = System.Data.CommandType.StoredProcedure;
+
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        var promotion = new TopActivePromotionDto
+                        {
+                            Id = reader.GetGuid(reader.GetOrdinal("PromotionId")),
+                            ProductName = reader.GetString(reader.GetOrdinal("ProductName")),
+                            OriginalPrice = reader.IsDBNull(reader.GetOrdinal("OriginalPrice")) ? null : (decimal?)reader.GetDecimal(reader.GetOrdinal("OriginalPrice")),
+                            PriceAfterPromotion = reader.IsDBNull(reader.GetOrdinal("PriceAfterPromotion")) ? null : (decimal?)reader.GetDecimal(reader.GetOrdinal("PriceAfterPromotion")),
+                            DiscountAmount = reader.IsDBNull(reader.GetOrdinal("DiscountAmount")) ? null : (decimal?)reader.GetDecimal(reader.GetOrdinal("DiscountAmount")),
+                            DiscountPercent = reader.IsDBNull(reader.GetOrdinal("DiscountPercent")) ? null : (decimal?)reader.GetDecimal(reader.GetOrdinal("DiscountPercent")),
+                            StartDate = reader.GetString(reader.GetOrdinal("StartDate")),
+                            EndDate = reader.GetString(reader.GetOrdinal("EndDate")),
+                            CategoryName = reader.GetString(reader.GetOrdinal("CategoryName")),
+                            StoreName = reader.GetString(reader.GetOrdinal("StoreName")),
+                            StoreId = reader.GetGuid(reader.GetOrdinal("StoreId")),
+                        };
+
+                        results.Add(promotion);
+                    }
+                }
+            }
+        }
+
+        return results;
+    }
+
+
+    public async Task<IEnumerable<ActivePromotionByDto>> GetAllActivePromotionsByStore(Guid storeId)
+    {
+        var results = new List<ActivePromotionByDto>();
+
+        using (var connection = _context.Database.GetDbConnection())
+        {
+            await connection.OpenAsync();
+
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = "GetPromotionsByStore";
+                command.CommandType = System.Data.CommandType.StoredProcedure;
+
+                var storeIdParameter = new SqlParameter("@StoreId", storeId);
+                command.Parameters.Add(storeIdParameter);
+
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        var promotion = new ActivePromotionByDto
+                        {
+                            Id = reader.GetGuid(reader.GetOrdinal("PromotionId")),
+                            ProductName = reader.GetString(reader.GetOrdinal("ProductName")),
+                            OriginalPrice = reader.IsDBNull(reader.GetOrdinal("OriginalPrice")) ? null : (decimal?)reader.GetDecimal(reader.GetOrdinal("OriginalPrice")),
+                            PriceAfterPromotion = reader.IsDBNull(reader.GetOrdinal("PriceAfterPromotion")) ? null : (decimal?)reader.GetDecimal(reader.GetOrdinal("PriceAfterPromotion")),
+                            DiscountAmount = reader.IsDBNull(reader.GetOrdinal("DiscountAmount")) ? null : (decimal?)reader.GetDecimal(reader.GetOrdinal("DiscountAmount")),
+                            StartDate = reader.GetString(reader.GetOrdinal("StartDate")),
+                            EndDate = reader.GetString(reader.GetOrdinal("EndDate")),
+                            CategoryName = reader.GetString(reader.GetOrdinal("CategoryName")),
+                            StoreName = reader.GetString(reader.GetOrdinal("StoreName")),
+                        };
+
+                        results.Add(promotion);
+                    }
+                }
+            }
+        }
+
+        return results;
+    }
+
+
+    public async Task<IEnumerable<ActivePromotionByDto>> GetAllActivePromotionsByCategory(Guid categoryId)
+    {
+        var results = new List<ActivePromotionByDto>();
+
+        using (var connection = _context.Database.GetDbConnection())
+        {
+            await connection.OpenAsync();
+
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = "GetPromotionsByCategory";
+                command.CommandType = System.Data.CommandType.StoredProcedure;
+
+                var categoryIdParameter = new SqlParameter("@CategoryId", categoryId);
+                command.Parameters.Add(categoryIdParameter);
+
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        var promotion = new ActivePromotionByDto
+                        {
+                            Id = reader.GetGuid(reader.GetOrdinal("PromotionId")),
+                            ProductName = reader.GetString(reader.GetOrdinal("ProductName")),
+                            OriginalPrice = reader.IsDBNull(reader.GetOrdinal("OriginalPrice")) ? null : (decimal?)reader.GetDecimal(reader.GetOrdinal("OriginalPrice")),
+                            PriceAfterPromotion = reader.IsDBNull(reader.GetOrdinal("PriceAfterPromotion")) ? null : (decimal?)reader.GetDecimal(reader.GetOrdinal("PriceAfterPromotion")),
+                            DiscountAmount = reader.IsDBNull(reader.GetOrdinal("DiscountAmount")) ? null : (decimal?)reader.GetDecimal(reader.GetOrdinal("DiscountAmount")),
+                            StartDate = reader.GetString(reader.GetOrdinal("StartDate")),
+                            EndDate = reader.GetString(reader.GetOrdinal("EndDate")),
+                            CategoryName = reader.GetString(reader.GetOrdinal("CategoryName")),
+                            StoreName = reader.GetString(reader.GetOrdinal("StoreName")),
+                        };
+
+                        results.Add(promotion);
+                    }
+                }
+            }
+        }
+
+        return results;
+    }
+
+
     public async Task<PromotionDto> CreatePromotionAsync(PromotionDto promotionDto)
     {
         var promotion = new Promotion
@@ -140,6 +272,8 @@ public class PromotionService : IPromotionService
 
                         string? unitType = promotion.GetProperty("UnitType").GetString() ?? null;
 
+
+
                         decimal? originalPrice = promotion.GetProperty("OriginalPrice").ValueKind == JsonValueKind.Number
                             ? promotion.GetProperty("OriginalPrice").GetDecimal()
                             : (decimal?)null;
@@ -147,6 +281,19 @@ public class PromotionService : IPromotionService
                         decimal? priceAfterPromotion = promotion.GetProperty("PriceAfterPromotion").ValueKind == JsonValueKind.Number
                             ? promotion.GetProperty("PriceAfterPromotion").GetDecimal()
                             : (decimal?)null;
+
+
+                        if (priceAfterPromotion == null)
+                        {
+                            throw new ArgumentNullException(nameof(priceAfterPromotion), "Price after promotion cannot be null.");
+                        }
+
+
+                        if (originalPrice != null && originalPrice <= priceAfterPromotion)
+                        {
+                            throw new InvalidOperationException($"Promotional price ({priceAfterPromotion}) should be less than the original price ({originalPrice}).");
+                        }
+
 
                         string? promotionType = promotion.GetProperty("PromotionType").GetString() ?? null;
 
@@ -157,6 +304,7 @@ public class PromotionService : IPromotionService
                         DateTime? endDate = promotion.GetProperty("EndDate").ValueKind == JsonValueKind.String
                             ? (DateTime?)promotion.GetProperty("EndDate").GetDateTime().Date.Add(new TimeSpan(23, 59, 59))
                             : null;
+
 
                         bool untilOutOfStock = promotion.GetProperty("UntilOutOfStock").GetBoolean();
 

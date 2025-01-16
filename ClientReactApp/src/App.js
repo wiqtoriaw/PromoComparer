@@ -7,7 +7,8 @@ import TopPromotions from './Promotions/TopPromotionsPage';
 import ShopsPage from './Shops/ShopsPage';
 import ShopPromotionsPage from './Shops/ShopPromotionsPage';
 import CategoriesPage from './Categories/CategoriesPage';
-import CategoryPromotionsPage from './Promotions/CategoryPromotionsPage';
+import CategoryPromotionsPage from './Categories/CategoryPromotionsPage';
+import SearchPromotionsPage from './Promotions/SearchPromotionsPage';
 
 
 function App() {
@@ -17,10 +18,11 @@ function App() {
       <main>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/promotions" element={<Promotions />} />
-          <Route path="/promotions/top" element={<TopPromotions />} />
-          <Route path="/shops" element={<ShopsPage />} />
-          <Route path="/shops/:id/promotions" element={<ShopPromotionsPage />} />
+          <Route path="/activepromotions" element={<Promotions />} />
+          <Route path="/activepromotions/top" element={<TopPromotions />} />
+          <Route path="/activepromotions/search" element={<SearchPromotionsPage />} />
+          <Route path="/stores" element={<ShopsPage />} />
+          <Route path="/activepromotions/stores/:id" element={<ShopPromotionsPage />} />
           <Route path="/promotions" element={<Promotions />} />
           <Route path="/categories" element={<CategoriesPage />} />
           <Route path="/categories/:id/promotions" element={<CategoryPromotionsPage />} />

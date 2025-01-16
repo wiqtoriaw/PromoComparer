@@ -62,15 +62,15 @@ namespace PromoComparerAPI.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    ProductName = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false),
-                    UnitType = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    OriginalPrice = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
-                    PriceAfterPromotion = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
-                    PromotionType = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ProductName = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
+                    UnitType = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    OriginalPrice = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: true),
+                    PriceAfterPromotion = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: true),
+                    PromotionType = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     UntilOutOfStock = table.Column<bool>(type: "bit", nullable: false),
-                    RequiredApp = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    RequiredApp = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     LeafletId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     CategoryId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },

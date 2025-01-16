@@ -15,10 +15,17 @@ public class CategoryService : ICategoryService
         _context = context;
     }
 
-    public async Task<List<string>> GetAllCategoriesAsync() // wykorzystane w OpenAIService
+    public async Task<List<string>> GetAllCategoriesListAsync() // wykorzystane w OpenAIService
     {
         return await _context.Categories
             .Select(category => category.Name)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<CategoryDto>> GetAllCategoriesAsync()
+    {
+        return await _context.Categories
+            .Select(category => new CategoryDto { Id = category.Id, Name = category.Name})
             .ToListAsync();
     }
 
