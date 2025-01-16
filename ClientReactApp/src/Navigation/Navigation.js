@@ -7,19 +7,19 @@ const Navigation = () => {
     <nav className="navigation">
       <ul className="nav-list">
         <li className="nav-item">
-          <Link to="/promotions">Promocje</Link>
+          <Link to="/activepromotions">Promocje</Link>
         </li>
         <li className="nav-item">
-          <Link to="/promotions/top">Największe Promocje</Link>
+          <Link to="/activepromotions/top">Największe Promocje</Link>
         </li>
         <li className="nav-item">
-          <Link to="/search">Wyszukiwarka</Link>
+          <Link to="/activepromotions/search">Wyszukiwarka</Link>
         </li>
         <li className="nav-item">
           <Link to="/categories">Kategorie</Link>
         </li>
         <li className="nav-item">
-          <Link to="/shops">Sklepy</Link>
+          <Link to="/stores">Sklepy</Link>
         </li>
       </ul>
     </nav>

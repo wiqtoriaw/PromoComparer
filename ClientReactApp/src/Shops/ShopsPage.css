@@ -1,9 +1,21 @@
 /* src/Shops/ShopsPage.css */
 
 .shops-container {
-    padding: 90px 20px 20px; /* Uwzględnienie nawigacji fixed */
-    background-color: #f9fafc;
-  }
+  display: flex;
+  justify-content: center; /* Wyśrodkowanie pionowe */
+  align-items: center; /* Wyśrodkowanie poziome */
+  flex-direction: column; /* Ustawienie elementów w kolumnie */
+  padding: 90px 20px 20px; /* Uwzględnienie nawigacji fixed */
+  background-color: #f9fafc;
+}
+
+.shops-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+  justify-content: center; /* Wyśrodkowanie siatki w poziomie */
+}
+
   
   .shops-container h2 {
     font-size: 1.8em;

@@ -1,24 +1,23 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
-import promotionsData from '../dummyData/promotionsData';
-import categoriesData from '../dummyData/categoriesData';
+import useCategoryPromotionsData from '../hooks/useCategoryPromotionsData';
 import Promotions from '../Promotions/Promotions';
 import './CategoryPromotionsPage.css'; // Import stylu dla strony
 
 const CategoryPromotionsPage = () => {
   const { id } = useParams();
-  const category = categoriesData.find(cat => cat.id === Number(id));
+  const { promotions, loading, error } = useCategoryPromotionsData(id);
 
-  if (!category) {
-    return <p>❌ Nie znaleziono kategorii o podanym ID.</p>;
+  if (loading) return <p>⏳ Ładowanie promocji...</p>;
+  if (error) return <p>❌ Błąd: {error}</p>;
+  if (!promotions || promotions.length === 0) {
+    return <p>❌ Brak promocji dla podanej kategorii.</p>;
   }
-
-  const filteredPromotions = promotionsData.filter(promo => promo.category === category.name);
 
   return (
     <div className="category-promotions-page">
-      <h2>🎯 Promocje dla kategorii: {category.name}</h2>
-      <Promotions dataSource={filteredPromotions} />
+      <h2>🎯 Promocje dla kategorii: {id}</h2>
+      <Promotions dataSource={promotions} />
     </div>
   );
 };

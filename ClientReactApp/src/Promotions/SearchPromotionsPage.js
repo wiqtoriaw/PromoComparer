@@ -1,28 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import Promotions from './Promotions';
-import promotionsData from '../dummyData/promotionsData';
+import usePromotionsData from '../hooks/usePromotionsData';
 import './SearchPromotionsPage.css';
 
 const SearchPromotionsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
+  const { promotions, loading, error } = usePromotionsData();
 
   useEffect(() => {
-    if (searchTerm.trim() === '') {
+    if (searchTerm.trim() === '' || loading || error) {
       setSearchResults([]);
       return;
     }
 
-    const filteredResults = promotionsData.filter(promo =>
+    const filteredResults = promotions.filter(promo =>
       promo.product_name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     setSearchResults(filteredResults);
-  }, [searchTerm]);
+  }, [searchTerm, promotions, loading, error]);
 
   const handleInputChange = (event) => {
     setSearchTerm(event.target.value);
   };
+
+  if (loading) return <p>⏳ Ładowanie promocji...</p>;
+  if (error) return <p>❌ Błąd: {error}</p>;
 
   return (
     <div className="search-promotions-page">
