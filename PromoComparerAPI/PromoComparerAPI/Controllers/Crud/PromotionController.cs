@@ -95,7 +95,7 @@ public class PromotionController : ControllerBase
     }
 
 
-    // GET: api/promotions/category/{categoryId}
+    // GET: api/Promotions/category/{categoryId}
     [HttpGet("category/{categoryId}")]
     public async Task<ActionResult<IEnumerable<TopActivePromotionDto>>> GetAllActivePromotionsByCategory(Guid categoryId)
     {
