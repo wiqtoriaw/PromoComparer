@@ -15,14 +15,17 @@ public class CategoryService : ICategoryService
         _context = context;
     }
 
+    public async Task<List<string>> GetAllCategoriesListAsync() // wykorzystane w OpenAIService
+    {
+        return await _context.Categories
+            .Select(category => category.Name)
+            .ToListAsync();
+    }
+
     public async Task<IEnumerable<CategoryDto>> GetAllCategoriesAsync()
     {
         return await _context.Categories
-            .Select(category => new CategoryDto
-            {
-                Id = category.Id,
-                Name = category.Name
-            })
+            .Select(category => new CategoryDto { Id = category.Id, Name = category.Name})
             .ToListAsync();
     }
 
@@ -54,5 +57,64 @@ public class CategoryService : ICategoryService
 
         categoryDto.Id = category.Id;
         return categoryDto;
+    }
+
+    public async Task<Guid> GetCategoryIdFromCategoryNameAsync(string categoryName) // wykorzystane w PromotionService
+    {
+        var category = await _context.Categories
+            .AsNoTracking()
+            .FirstOrDefaultAsync(s => s.Name.ToLower() == categoryName.ToLower());
+
+        if (category == null)
+        {
+            throw new KeyNotFoundException($"Category with name '{categoryName}' not found.");
+        }
+
+        return category.Id;
+    }
+
+    public async Task CreateCategoryFromListAsync() //jednorazowe wywołanie
+    {
+        var categoryNames = new List<string>
+        {
+            "Artykuły spożywcze",
+            "Chemia gospodarcza i artykuły higieniczne",
+            "Produkty dla dzieci",
+            "Artykuły domowe i dekoracje",
+            "Elektronika",
+            "Odzież i obuwie",
+            "Produkty związane z sezonowymi potrzebami",
+            "Artykuły ogrodowe i DIY",
+            "Zwierzęta domowe"
+        };
+
+        foreach (var categoryName in categoryNames)
+        {
+            try
+            {
+
+                if (await _context.Categories.AnyAsync(s => s.Name.ToLower() == categoryName.ToLower()))
+                {
+                    throw new InvalidOperationException($"Category '{categoryName}' already exists!");
+                }
+
+                var category = new Category
+                {
+                    Name = categoryName
+                };
+
+                _context.Categories.Add(category);
+                await _context.SaveChangesAsync();
+
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Unexpected error for category '{categoryName}': {ex.Message}");
+            }
+        }
     }
 }

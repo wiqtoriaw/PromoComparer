@@ -10,8 +10,7 @@ public class Leaflet
     public Guid Id { get; set; } = Guid.NewGuid();
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
-
-    //TODO: DODAĆ POLE public string PdfLink {get; set;}
+    public string PdfLink { get; set; }
 
     [ForeignKey("Store")]
     public Guid StoreId { get; set; }

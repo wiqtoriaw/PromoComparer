@@ -26,6 +26,7 @@ public class LeafletService : ILeafletService
                 Id = leaflet.Id, 
                 StartDate = leaflet.StartDate,
                 EndDate = leaflet.EndDate,
+                PdfLink = leaflet.PdfLink,
                 StoreId = leaflet.StoreId
             })
             .ToListAsync();
@@ -45,6 +46,7 @@ public class LeafletService : ILeafletService
             Id = leaflet.Id,
             StartDate = leaflet.StartDate,
             EndDate = leaflet.EndDate,
+            PdfLink = leaflet.PdfLink,
             StoreId = leaflet.StoreId
         };
     }
@@ -55,6 +57,7 @@ public class LeafletService : ILeafletService
         {
             StartDate = leafletDto.StartDate,
             EndDate = leafletDto.EndDate,
+            PdfLink = leafletDto.PdfLink,
             StoreId = leafletDto.StoreId
         };
 
@@ -67,7 +70,7 @@ public class LeafletService : ILeafletService
 
     //
 
-    public Guid CreateLeaflet(string dateRange, string shop_stem)
+    public async Task<Guid> CreateLeafletAsync(string dateRange, string shop_stem, string pdfLink)
     {
         var dates = dateRange.Split('–');
 
@@ -82,17 +85,18 @@ public class LeafletService : ILeafletService
             startDate = startDate.Date; // ustawia czas na północ (00:00:00)
             endDate = endDate.Date.AddDays(1).AddTicks(-1); // ustawia czas na koniec dnia (23:59:59.9999999)
 
-            var storeId = _storeService.GetIdFromStem(shop_stem);
+            var storeId = await _storeService.GetIdFromStemAsync(shop_stem);
 
             var leaflet = new Leaflet
             {
                 StartDate = startDate,
                 EndDate = endDate,
+                PdfLink = pdfLink,
                 StoreId = storeId
             };
 
             _context.Leaflets.Add(leaflet);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             return leaflet.Id;
 
@@ -101,5 +105,27 @@ public class LeafletService : ILeafletService
         {
             throw new ArgumentException("Date range format is incorrect.", nameof(dateRange));
         }
+    }
+
+    public async Task<DateTime> GetStartDateFromId(Guid guid)  //do endpointów - sprawdzanie czy promocja ma startDate, jeśli nie to wprowadza date gazetki
+    {
+        var leaflet = await _context.Leaflets.FindAsync(guid);
+        if (leaflet == null)
+        {
+            throw new KeyNotFoundException("Leaflet not found.");
+        }
+
+        return leaflet.StartDate;
+    }
+
+    public async Task<DateTime> GetEndDateFromId(Guid guid)  //do endpointów - sprawdzanie czy promocja ma startDate, jeśli nie to wprowadza date gazetki
+    {
+        var leaflet = await _context.Leaflets.FindAsync(guid);
+        if (leaflet == null)
+        {
+            throw new KeyNotFoundException("Leaflet not found.");
+        }
+
+        return leaflet.EndDate;
     }
 }

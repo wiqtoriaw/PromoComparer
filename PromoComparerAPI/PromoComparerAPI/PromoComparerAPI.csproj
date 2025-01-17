@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <Platforms>AnyCPU;x64</Platforms>
+    <GenerateDocumentationFile>False</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="coravel" Version="6.0.1" />
     <PackageReference Include="Dapper" Version="2.1.35" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.71" />
     <PackageReference Include="Magick.NET-Q16-x64" Version="14.4.0" />
@@ -36,6 +38,7 @@
 
   <ItemGroup>
     <Folder Include="Assets\" />
+    <Folder Include="Pdfs\" />
   </ItemGroup>
 
 </Project>

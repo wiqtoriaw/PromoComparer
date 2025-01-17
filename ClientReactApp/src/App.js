@@ -23,7 +23,6 @@ function App() {
           <Route path="/activepromotions/search" element={<SearchPromotionsPage />} />
           <Route path="/stores" element={<ShopsPage />} />
           <Route path="/stores/:id" element={<ShopPromotionsPage />} />
-          <Route path="/promotions" element={<Promotions />} />
           <Route path="/categories" element={<CategoriesPage />} />
           <Route path="/categories/:id" element={<CategoryPromotionsPage />} />
         </Routes>
