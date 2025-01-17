@@ -15,7 +15,7 @@ const useCategoryPromotionsData = (categoryId) => {
     const fetchCategoryPromotions = async () => {
       try {
         console.log(`🌐 Pobieranie promocji dla kategorii o ID: ${categoryId}`);
-        const response = await fetch(`http://localhost:5068/api/activepromotions/category/${categoryId}`);
+        const response = await fetch(`http://localhost:5068/api/Promotions/category/${categoryId}`);
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }

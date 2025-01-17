@@ -15,7 +15,7 @@ const SearchPromotionsPage = () => {
     }
 
     const filteredResults = promotions.filter(promo =>
-      promo.product_name.toLowerCase().includes(searchTerm.toLowerCase())
+      promo.productName.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     setSearchResults(filteredResults);
