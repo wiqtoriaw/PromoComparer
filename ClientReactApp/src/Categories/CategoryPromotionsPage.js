@@ -8,15 +8,18 @@ const CategoryPromotionsPage = () => {
   const { id } = useParams();
   const { promotions, loading, error } = useCategoryPromotionsData(id);
 
-  if (loading) return <p>⏳ Ładowanie promocji...</p>;
-  if (error) return <p>❌ Błąd: {error}</p>;
+  if (loading) return <p>⏳ Ładowanie promocji dla kategorii...</p>;
+  if (error) return <p>❌ Błąd podczas ładowania promocji: {error}</p>;
   if (!promotions || promotions.length === 0) {
-    return <p>❌ Brak promocji dla podanej kategorii.</p>;
+    return <p>ℹ️ Brak promocji dla kategorii o ID: {id}.</p>;
   }
+
+  // Pobierz nazwę kategorii, jeśli dostępna w danych promocji
+  const categoryName = promotions[0]?.categoryName || `ID: ${id}`;
 
   return (
     <div className="category-promotions-page">
-      <h2>🎯 Promocje dla kategorii: {id}</h2>
+      <h2>🎯 Promocje dla kategorii: {categoryName}</h2>
       <Promotions dataSource={promotions} />
     </div>
   );

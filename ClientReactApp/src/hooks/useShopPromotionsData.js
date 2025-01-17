@@ -15,7 +15,7 @@ const useShopPromotionsData = (shopId) => {
     const fetchShopPromotions = async () => {
       try {
         console.log(`🌐 Pobieranie promocji dla sklepu o ID: ${shopId}`);
-        const response = await fetch(`http://localhost:5068/api/activepromotions/store/${shopId}`);
+        const response = await fetch(`http://localhost:5068/api/Promotions/store/${shopId}`);
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }

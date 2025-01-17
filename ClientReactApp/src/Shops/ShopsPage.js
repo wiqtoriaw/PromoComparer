@@ -13,7 +13,7 @@ const ShopsPage = () => {
   if (error) return <p>❌ Błąd: {error}</p>;
 
   const handleShopClick = (id) => {
-    navigate(`/activepromotions/store/${id}`);
+    navigate(`/stores/${id}`);
   };
 
   return (

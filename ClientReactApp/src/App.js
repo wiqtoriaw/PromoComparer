@@ -22,10 +22,10 @@ function App() {
           <Route path="/activepromotions/top" element={<TopPromotions />} />
           <Route path="/activepromotions/search" element={<SearchPromotionsPage />} />
           <Route path="/stores" element={<ShopsPage />} />
-          <Route path="/activepromotions/stores/:id" element={<ShopPromotionsPage />} />
+          <Route path="/stores/:id" element={<ShopPromotionsPage />} />
           <Route path="/promotions" element={<Promotions />} />
           <Route path="/categories" element={<CategoriesPage />} />
-          <Route path="/categories/:id/promotions" element={<CategoryPromotionsPage />} />
+          <Route path="/categories/:id" element={<CategoryPromotionsPage />} />
         </Routes>
       </main>
     </Router>
