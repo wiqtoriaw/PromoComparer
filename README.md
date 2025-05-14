@@ -1,1 +1,1 @@
-# Projekt_zepolowy_grupa5
+# PromoComparer
