@@ -1,9 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using PromoComparerAPI.Models;
+using PromoComparerAPI.Models.DTOs;
 
 namespace PromoComparerAPI.Data;
 
-public class ApplicationDbContext : DbContext
+public class ApplicationDbContext : IdentityDbContext<User>
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)
@@ -17,6 +19,10 @@ public class ApplicationDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        // Call base method to configure identity tables
+        base.OnModelCreating(modelBuilder);
+
+        // Custom configurations for your models
         modelBuilder.Entity<Promotion>()
             .Property(p => p.OriginalPrice)
             .HasPrecision(18, 2);
@@ -39,6 +45,8 @@ public class ApplicationDbContext : DbContext
             .HasOne(p => p.Leaflet)
             .WithMany(l => l.Promotions)
             .HasForeignKey(p => p.LeafletId);
-    }
 
+        // Additional configurations for the User entity if needed
+        modelBuilder.Entity<User>().Property(u => u.Initials).HasMaxLength(5);
+    }
 }

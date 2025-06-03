@@ -1,6 +1,9 @@
+using System.Security.Claims;
 using Coravel;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using PromoComparerAPI.Data;
+using PromoComparerAPI.Extensions;
 using PromoComparerAPI.Interfaces;
 using PromoComparerAPI.Interfaces.Crud;
 using PromoComparerAPI.Services;
@@ -54,8 +57,39 @@ public class Program
             });
         });
 
+        builder.Services.AddAuthentication(options =>
+        {
+            options.DefaultScheme = IdentityConstants.ApplicationScheme;
+            options.DefaultChallengeScheme = IdentityConstants.ApplicationScheme;
+        })
+        .AddCookie(IdentityConstants.ApplicationScheme)
+        .AddBearerToken(IdentityConstants.BearerScheme);
+
+        builder.Services.ConfigureApplicationCookie(options =>
+        {
+            options.Events.OnRedirectToLogin = context =>
+            {
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                return Task.CompletedTask;
+            };
+        });
+
+        builder.Services.AddAuthorization();
+
+        builder.Services.AddIdentityCore<User>(options => { /* Identity options if any */ })
+            .AddRoles<IdentityRole>() // Add this line to support roles
+            .AddEntityFrameworkStores<ApplicationDbContext>()
+            .AddApiEndpoints();
 
         var app = builder.Build();
+
+        using (var scope = app.Services.CreateScope())
+        {
+            var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+            EnsureRoles(roleManager); // call the synchronous version
+        }
+
+        // Apply the migration in the development environment
 
         app.Services.UseScheduler(scheduler =>
         {
@@ -70,16 +104,42 @@ public class Program
         {
             app.UseSwagger();
             app.UseSwaggerUI();
+            app.ApplyMigratons();
         }
         else
         {
             app.UseHttpsRedirection();
         }
 
+
+        app.UseAuthentication();
         app.UseAuthorization();
 
         app.MapControllers();
 
+
+        app.MapGet("users/me", async (ClaimsPrincipal claims, ApplicationDbContext context) =>
+        {
+            string userId = claims.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
+            return await context.Users.FindAsync(userId);
+        })
+        .RequireAuthorization();
+
+        app.MapIdentityApi<User>();
+
         app.Run();
+
+        void EnsureRoles(RoleManager<IdentityRole> roleManager)
+        {
+            var roles = new[] { "Admin", "User" };
+
+            foreach (var role in roles)
+            {
+                if (!roleManager.RoleExistsAsync(role).Result)
+                {
+                    roleManager.CreateAsync(new IdentityRole(role)).Wait();
+                }
+            }
+        }
     }
 }
