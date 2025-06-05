@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using PromoComparerAPI.Models;
-using PromoComparerAPI.Models.DTOs;
 
 namespace PromoComparerAPI.Data;
 
@@ -16,13 +15,25 @@ public class ApplicationDbContext : IdentityDbContext<User>
     public DbSet<Leaflet> Leaflets { get; set; }
     public DbSet<Promotion> Promotions { get; set; }
     public DbSet<Store> Stores { get; set; }
+    public DbSet<Favourite> Favourites { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        // Call base method to configure identity tables
         base.OnModelCreating(modelBuilder);
 
-        // Custom configurations for your models
+        modelBuilder.Entity<Favourite>()
+            .HasKey(f => new { f.UserId, f.PromotionId });
+
+        modelBuilder.Entity<Favourite>()
+            .HasOne(f => f.User)
+            .WithMany(u => u.Favourites)
+            .HasForeignKey(f => f.UserId);
+
+        modelBuilder.Entity<Favourite>()
+            .HasOne(f => f.Promotion)
+            .WithMany(p => p.Favourites)
+            .HasForeignKey(f => f.PromotionId);
+
         modelBuilder.Entity<Promotion>()
             .Property(p => p.OriginalPrice)
             .HasPrecision(18, 2);
@@ -46,7 +57,6 @@ public class ApplicationDbContext : IdentityDbContext<User>
             .WithMany(l => l.Promotions)
             .HasForeignKey(p => p.LeafletId);
 
-        // Additional configurations for the User entity if needed
         modelBuilder.Entity<User>().Property(u => u.Initials).HasMaxLength(5);
     }
 }

@@ -33,6 +33,7 @@ public class Program
         builder.Services.AddScoped<IStoreService, StoreService>();
         builder.Services.AddScoped<ILeafletService, LeafletService>();
         builder.Services.AddScoped<ICategoryService, CategoryService>();
+        builder.Services.AddScoped<IUserPanelService, UserPanelService>();
         builder.Services.AddTransient<IOpenAIService, OpenAIService>(sp =>
         {
             var apiKey = builder.Configuration["OPENAI_API_KEY"];
