@@ -14,6 +14,10 @@ public class PdfHandlerService : IPdfHandlerService
     private readonly ILeafletService _leafletService;
     private readonly ApplicationDbContext _context;
 
+    static PdfHandlerService()
+    {
+        MagickNET.SetGhostscriptDirectory(@"C:\Program Files\gs\gs10.04.0\bin");
+    }
 
     public PdfHandlerService(IConfiguration configuration, ILeafletService leafletService, ApplicationDbContext context)
     {
@@ -138,7 +142,7 @@ public class PdfHandlerService : IPdfHandlerService
     {
         var pdfFiles = Directory.GetFiles(_pdfDirectory, "*.pdf", SearchOption.AllDirectories);
 
-        foreach (var pdfFile in pdfFiles)
+        Parallel.ForEach(pdfFiles, pdfFile =>
         {
             try
             {
@@ -149,12 +153,12 @@ public class PdfHandlerService : IPdfHandlerService
                 File.Delete(pdfFile);
                 Console.WriteLine($"Deleted {pdfFile}");
             }
-            
+
             catch (Exception ex)
             {
                 Console.WriteLine($"Error processing PDF: {ex.Message} with {pdfFile}");
             }
-        }
+        });
     }
 
     private void ConvertPdfToImages(string pdfPath)
@@ -166,8 +170,6 @@ public class PdfHandlerService : IPdfHandlerService
             {
                 Directory.CreateDirectory(imageDirectory);
             }
-
-            MagickNET.SetGhostscriptDirectory(@"C:\Program Files\gs\gs10.04.0\bin");
 
             var settings = new MagickReadSettings
             {
@@ -184,7 +186,7 @@ public class PdfHandlerService : IPdfHandlerService
 
             foreach (var image in images)
             {
-                var imagePath = Path.Combine(imageDirectory, $"Page{pageIndex}.png");
+                var imagePath = Path.Combine(imageDirectory, $"Page_{pageIndex}.png");
 
                 image.Write(imagePath, MagickFormat.Png);
 

@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace PromoComparerAPI.Models;
 
@@ -29,4 +30,6 @@ public class Promotion
     [ForeignKey("Category")]
     public Guid CategoryId { get; set; }
     public Category Category { get; set; }
+    [JsonIgnore]
+    public ICollection<Favourite> Favourites { get; set; } = new List<Favourite>();
 }
