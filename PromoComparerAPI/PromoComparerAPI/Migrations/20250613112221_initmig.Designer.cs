@@ -12,8 +12,8 @@ using PromoComparerAPI.Data;
 namespace PromoComparerAPI.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250605184625_AddFavouriteTable")]
-    partial class AddFavouriteTable
+    [Migration("20250613112221_initmig")]
+    partial class initmig
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
