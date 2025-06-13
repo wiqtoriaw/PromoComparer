@@ -12,8 +12,8 @@ using PromoComparerAPI.Data;
 namespace PromoComparerAPI.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250603181712_initialsetup")]
-    partial class initialsetup
+    [Migration("20250613112626_addproc")]
+    partial class addproc
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -243,19 +243,21 @@ namespace PromoComparerAPI.Migrations
                     b.ToTable("Categories");
                 });
 
-            modelBuilder.Entity("PromoComparerAPI.Models.DTOs.CategoryDto", b =>
+            modelBuilder.Entity("PromoComparerAPI.Models.Favourite", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)")
+                        .HasColumnOrder(0);
 
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<Guid>("PromotionId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnOrder(1);
 
-                    b.HasKey("Id");
+                    b.HasKey("UserId", "PromotionId");
 
-                    b.ToTable("CategoryDto");
+                    b.HasIndex("PromotionId");
+
+                    b.ToTable("Favourites");
                 });
 
             modelBuilder.Entity("PromoComparerAPI.Models.Leaflet", b =>
@@ -408,6 +410,25 @@ namespace PromoComparerAPI.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("PromoComparerAPI.Models.Favourite", b =>
+                {
+                    b.HasOne("PromoComparerAPI.Models.Promotion", "Promotion")
+                        .WithMany("Favourites")
+                        .HasForeignKey("PromotionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PromoComparerAPI.Data.User", "User")
+                        .WithMany("Favourites")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Promotion");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("PromoComparerAPI.Models.Leaflet", b =>
                 {
                     b.HasOne("PromoComparerAPI.Models.Store", "Store")
@@ -438,6 +459,11 @@ namespace PromoComparerAPI.Migrations
                     b.Navigation("Leaflet");
                 });
 
+            modelBuilder.Entity("PromoComparerAPI.Data.User", b =>
+                {
+                    b.Navigation("Favourites");
+                });
+
             modelBuilder.Entity("PromoComparerAPI.Models.Category", b =>
                 {
                     b.Navigation("Promotions");
@@ -446,6 +472,11 @@ namespace PromoComparerAPI.Migrations
             modelBuilder.Entity("PromoComparerAPI.Models.Leaflet", b =>
                 {
                     b.Navigation("Promotions");
+                });
+
+            modelBuilder.Entity("PromoComparerAPI.Models.Promotion", b =>
+                {
+                    b.Navigation("Favourites");
                 });
 
             modelBuilder.Entity("PromoComparerAPI.Models.Store", b =>
