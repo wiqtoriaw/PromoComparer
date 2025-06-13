@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import './Promotions.css';
+import api from '../Services/api';
 
 const formatDate = (date) => {
   if (!date) return null;
@@ -12,6 +13,24 @@ const formatDate = (date) => {
 };
 
 const PromotionsItem = ({ promo }) => {
+  const [isFav, setIsFav] = useState(false);
+
+  useEffect(() => {
+    // Pobranie listy ulubionych i ustawienie stanu dla tej promocji
+    api.getFavourites()
+      .then(favs => {
+        const favIds = favs.map(f => f.id);
+        setIsFav(favIds.includes(promo.id));
+      })
+      .catch(err => console.error('Błąd pobierania ulubionych:', err.message));
+  }, [promo.id]);
+
+  const toggleFav = () => {
+    api.addFavourite(promo.id)
+      .then(() => setIsFav(true))
+      .catch(err => console.error('Błąd dodawania do ulubionych:', err.message));
+  };
+
   const discountAmount = promo.discountAmount
     ? promo.discountAmount
     : (promo.originalPrice && promo.priceAfterPromotion
@@ -20,6 +39,9 @@ const PromotionsItem = ({ promo }) => {
 
   return (
     <div className="promotion-item">
+      <button onClick={toggleFav} className="fav-button">
+        {isFav ? '❤️' : '🤍'}
+      </button>
       {promo.productName && <h3>🛒 {promo.productName}</h3>}
       {promo.storeName && <p>🏬 <strong>Sklep:</strong> {promo.storeName}</p>}
       {promo.priceAfterPromotion && <p>💲 <strong>Cena promocyjna:</strong> {promo.priceAfterPromotion}</p>}
