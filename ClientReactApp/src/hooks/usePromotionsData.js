@@ -9,7 +9,7 @@ const usePromotionsData = () => {
     const fetchPromotions = async () => {
       try {
         console.log('🌐 Pobieranie danych z API');
-        const response = await fetch('http://localhost:5068/api/activepromotions');
+        const response = await fetch('http://localhost:5068/api/Promotions/active');
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }

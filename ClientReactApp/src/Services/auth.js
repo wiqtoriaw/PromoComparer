@@ -1,108 +1,99 @@
 // src/Services/auth.js
 const API_BASE = 'http://localhost:5068';
 
-/** Rejestracja – może zwrócić 204 No Content lub JSON z tokenami */
+/**
+ * Rejestracja nowego użytkownika.
+ * Przyjmuje obiekt { email, password } i zwraca JSON z tokenami.
+ * Jeśli rejestracja się nie powiedzie, rzuca błąd.
+ */
 export async function register({ email, password }) {
-  const res = await fetch(
-    `${API_BASE}/register?cookieMode=false&persistCookies=false`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email,
-        userName: email,
-        password,
-        confirmPassword: password,
-      }),
-    }
-  );
-
-  if (!res.ok) {
-    const text = await res.text().catch(() => res.statusText);
-    let msg = text;
-    try {
-      const problem = JSON.parse(text);
-      msg =
-        problem.detail ||
-        (problem.errors
-          ? Object.values(problem.errors).flat().join(', ')
-          : res.statusText);
-    } catch {}
-    throw new Error(msg);
-  }
-
-  // jeśli 204 lub brak ciała → zwracamy null
-  if (res.status === 204 || res.headers.get('content-length') === '0') {
-    return null;
-  }
-
+  const res = await fetch(`${API_BASE}/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password })
+  });
   const json = await res.json();
-  localStorage.setItem('accessToken', json.accessToken);
+  if (!res.ok) throw new Error(json.error || res.statusText);
+  // Automatycznie zapisujemy tokeny jeśli są dostępne
+  if (json.accessToken) {
+    localStorage.setItem('accessToken', json.accessToken);
+  }
   if (json.refreshToken) {
     localStorage.setItem('refreshToken', json.refreshToken);
   }
   return json;
 }
 
-/** Logowanie – zwraca JSON z tokenami */
-export async function login({ email, password }) {
-  const res = await fetch(
-    `${API_BASE}/login?cookieMode=false&persistCookies=false`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    }
-  );
-
-  // najpierw obsłuż błąd jako tekst
-  if (!res.ok) {
-    const text = await res.text().catch(() => res.statusText);
-    let msg = text;
-    try {
-      const errObj = JSON.parse(text);
-      msg = errObj.error || errObj.detail || res.statusText;
-    } catch {}
-    throw new Error(msg);
-  }
-
-  // teraz bezpiecznie parsujemy JSON
+/**
+ * Logowanie istniejącego użytkownika.
+ * Przyjmuje dwa argumenty: email i password.
+ * Zapisuje accessToken i refreshToken w localStorage.
+ */
+export async function login(email, password) {
+  const res = await fetch(`${API_BASE}/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password })
+  });
   const json = await res.json();
+  if (!res.ok) throw new Error(json.error || res.statusText);
   localStorage.setItem('accessToken', json.accessToken);
-  if (json.refreshToken) {
-    localStorage.setItem('refreshToken', json.refreshToken);
-  }
+  localStorage.setItem('refreshToken', json.refreshToken);
   return json;
 }
 
-/** Odświeżenie tokenu */
+/**
+ * Odświeżenie accessToken przy użyciu refreshToken.
+ * Zapisuje nowy accessToken w localStorage.
+ */
 export async function refreshToken() {
-  const rt = localStorage.getItem('refreshToken');
-  if (!rt) throw new Error('Brak refresh token');
+  const refreshToken = localStorage.getItem('refreshToken');
+  if (!refreshToken) throw new Error('Brak refresh token');
 
   const res = await fetch(`${API_BASE}/refresh`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ refreshToken: rt }),
+    body: JSON.stringify({ refreshToken })
   });
 
-  if (!res.ok) {
-    const text = await res.text().catch(() => res.statusText);
-    throw new Error(text);
-  }
-
   const json = await res.json();
+  if (!res.ok) throw new Error(json.error || res.statusText);
   localStorage.setItem('accessToken', json.accessToken);
   return json;
 }
 
-/** Wylogowanie */
+/**
+ * Wylogowanie użytkownika - usunięcie tokenów.
+ */
 export function logout() {
   localStorage.removeItem('accessToken');
   localStorage.removeItem('refreshToken');
 }
 
-/** Pobierz aktualny accessToken */
+/**
+ * Pobiera accessToken z localStorage.
+ */
 export function getAccessToken() {
   return localStorage.getItem('accessToken');
+}
+
+/**
+ * Pobiera aktualne dane zalogowanego użytkownika.
+ * Wysyła zapytanie z nagłówkiem Authorization.
+ */
+export async function fetchCurrentUser() {
+  const token = getAccessToken();
+  if (!token) return null;
+
+  const res = await fetch(`${API_BASE}/users/me`, {
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    }
+  });
+
+  if (!res.ok) {
+    throw new Error('Nie udało się pobrać danych użytkownika');
+  }
+  return res.json();
 }

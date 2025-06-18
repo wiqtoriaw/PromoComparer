@@ -5,7 +5,7 @@ import { useAuth } from '../hooks/useAuth';  // zakładam, że zwraca { register
 
 export default function RegisterPage() {
   const [email, setEmail]     = useState('');
-  const [password, setPassword] = useState('');
+  const [password, setPass]   = useState('');    // zmieniamy nazwę na password
   const [error, setError]     = useState('');
   const navigate               = useNavigate();
   const { register }           = useAuth();
@@ -44,7 +44,7 @@ export default function RegisterPage() {
             type="password"
             placeholder="Hasło"
             value={password}
-            onChange={e => setPassword(e.target.value)}
+            onChange={e => setPass(e.target.value)}
             required
           />
           {error && <div className="login-error">{error}</div>}

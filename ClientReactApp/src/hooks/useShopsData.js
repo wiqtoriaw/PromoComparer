@@ -9,7 +9,7 @@ const useShopsData = () => {
     const fetchShops = async () => {
       try {
         console.log('🌐 Pobieranie danych z API');
-        const response = await fetch('http://localhost:5068/api/stores');
+        const response = await fetch('http://localhost:5068/api/Stores');
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }

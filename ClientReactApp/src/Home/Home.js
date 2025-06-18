@@ -8,7 +8,7 @@ const Home = () => {
     <><div className="home-container">
       <h1>Projekt zespołowy - Strona Główna</h1>
     </div>
-    <Link to="/promotions/top">Największe Promocje</Link></>
+    <Link to="/activepromotions/top">Największe Promocje</Link></>
   );
 };
 

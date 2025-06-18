@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace PromoComparerAPI.Models;
 
@@ -9,16 +10,16 @@ public class Promotion
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public Guid Id { get; set; } = Guid.NewGuid();
     [Required]
-    [StringLength(64)]
+    [StringLength(500)]
     public required string ProductName { get; set; }
-    public string UnitType { get; set; } = ""; //kilogram, sztuka
-    public decimal OriginalPrice { get; set; }
-    public decimal PriceAfterPromotion {  get; set; }
-    public string PromotionType { get; set; } = "";
-    public DateTime StartDate { get; set; }
-    public DateTime EndDate { get; set; }
+    public string? UnitType { get; set; } //kilogram, sztuka
+    public decimal? OriginalPrice { get; set; }
+    public decimal? PriceAfterPromotion {  get; set; }
+    public string? PromotionType { get; set; }
+    public DateTime? StartDate { get; set; }
+    public DateTime? EndDate { get; set; }
     public bool UntilOutOfStock { get; set; }
-    public string RequiredApp { get; set; } = "";
+    public string? RequiredApp { get; set; }
 
 
     [ForeignKey("Leaflet")]
@@ -29,4 +30,6 @@ public class Promotion
     [ForeignKey("Category")]
     public Guid CategoryId { get; set; }
     public Category Category { get; set; }
+    [JsonIgnore]
+    public ICollection<Favourite> Favourites { get; set; } = new List<Favourite>();
 }

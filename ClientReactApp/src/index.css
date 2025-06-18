@@ -11,3 +11,52 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/* — podstawa: reset i fonty — */
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f5f5f5;
+  color: #333;
+}
+main {
+  padding: 1rem;
+  max-width: 1024px;
+  margin: 0 auto;
+}
+
+/* — lista sklepów/kategorii/promocji — */
+.list-page {
+  margin: 1rem 0;
+}
+.list-page h2 {
+  margin-bottom: 0.5rem;
+  font-size: 1.25rem;
+}
+.list-page ul {
+  list-style: none;
+  padding: 0;
+}
+.list-page li {
+  background: #fff;
+  margin-bottom: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* — przyciski akcji (np. ❤️ ulubione) — */
+.btn-action {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #e63946;
+  font-size: 1.1rem;
+}
+.btn-action:hover {
+  color: #b02a37;
+}

@@ -1,12 +1,6 @@
-<<<<<<< Updated upstream
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import './Promotions.css';
-=======
-// src/Promotions/PromotionsItem.js
-import React from 'react';
-import './Promotions.css';
-import { useFavourites } from '../context/FavouritesContext';
->>>>>>> Stashed changes
+import api from '../Services/api';
 
 const formatDate = (date) => {
   if (!date) return null;
@@ -18,66 +12,52 @@ const formatDate = (date) => {
   return `${day}-${month}-${year}`;
 };
 
-<<<<<<< Updated upstream
 const PromotionsItem = ({ promo }) => {
-=======
-export default function PromotionsItem({ promo }) {
-  const { isFavourite, addFavourite, removeFavourite } = useFavourites();
-  const fav = isFavourite(promo.id);
+  const [isFav, setIsFav] = useState(false);
+
+  useEffect(() => {
+    // Pobranie listy ulubionych i ustawienie stanu dla tej promocji
+    api.getFavourites()
+      .then(favs => {
+        const favIds = favs.map(f => f.id);
+        setIsFav(favIds.includes(promo.id));
+      })
+      .catch(err => console.error('Błąd pobierania ulubionych:', err.message));
+  }, [promo.id]);
 
   const toggleFav = () => {
-    if (fav) {
-      removeFavourite(promo.id);
-    } else {
-      addFavourite(promo.id);
-    }
+    api.addFavourite(promo.id)
+      .then(() => setIsFav(true))
+      .catch(err => console.error('Błąd dodawania do ulubionych:', err.message));
   };
 
->>>>>>> Stashed changes
   const discountAmount = promo.discountAmount
     ? promo.discountAmount
-    : (promo.originalPrice != null && promo.priceAfterPromotion != null
+    : (promo.originalPrice && promo.priceAfterPromotion
         ? (promo.originalPrice - promo.priceAfterPromotion).toFixed(2)
         : null);
 
   return (
     <div className="promotion-item">
-<<<<<<< Updated upstream
-=======
       <button onClick={toggleFav} className="fav-button">
-        {fav ? '❤️' : '🤍'}
+        {isFav ? '❤️' : '🤍'}
       </button>
->>>>>>> Stashed changes
       {promo.productName && <h3>🛒 {promo.productName}</h3>}
       {promo.storeName && <p>🏬 <strong>Sklep:</strong> {promo.storeName}</p>}
-      {promo.priceAfterPromotion != null && (
-        <p>💲 <strong>Cena promocyjna:</strong> {promo.priceAfterPromotion}</p>
-      )}
-      {promo.originalPrice != null && (
-        <p>💼 <strong>Cena regularna:</strong> {promo.originalPrice}</p>
-      )}
-      {discountAmount && (
-        <p>🔖 <strong>Kwota promocji:</strong> {discountAmount}</p>
-      )}
-      {promo.discountPercent && (
-        <p>📉 <strong>Procent promocji:</strong> {promo.discountPercent}%</p>
-      )}
-      {promo.categoryName && (
-        <p>📦 <strong>Kategoria:</strong> {promo.categoryName}</p>
-      )}
-      <p>
-        📅 <strong>Okres promocji:</strong>{' '}
-        {formatDate(promo.startDate)} – {formatDate(promo.endDate)}
-      </p>
+      {promo.priceAfterPromotion && <p>💲 <strong>Cena promocyjna:</strong> {promo.priceAfterPromotion}</p>}
+      {promo.originalPrice && <p>💼 <strong>Cena regularna:</strong> {promo.originalPrice}</p>}
+      {discountAmount && <p>🔖 <strong>Kwota promocji:</strong> {discountAmount}</p>}
+      {promo.discountPercent && <p>📉 <strong>Procent promocji:</strong> {promo.discountPercent}%</p>}
+      {promo.categoryName && <p>📦 <strong>Kategoria:</strong> {promo.categoryName}</p>}
+      <p>📅 <strong>Okres promocji:</strong> {formatDate(promo.startDate)} - {formatDate(promo.endDate)}</p>
       {promo.untilOutOfStock !== undefined && (
-        <p>
-          📦 <strong>Dostępne do wyczerpania zapasów:</strong>{' '}
-          {promo.untilOutOfStock ? '✔️' : '❌'}
-        </p>
+        <p>📦 <strong>Dostępne do wyczerpania zapasów:</strong> {promo.untilOutOfStock ? '✔️' : '❌'}</p>
       )}
       {promo.requiredApp && (
         <p>📲 <strong>Wymagana aplikacja:</strong> {promo.requiredApp}</p>
       )}
     </div>
   );
-}
+};
+
+export default PromotionsItem;

@@ -2,7 +2,7 @@
 
 public interface IPdfHandlerService
 {
-    Task DownloadPdfsLeafletsAsync();
+    Task ScrappPromotionData(string shop);
     void ConvertAllPdfsToImagesAndDelete();
 
 }
