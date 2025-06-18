@@ -1,16 +1,17 @@
 // src/Pages/RegisterPage.jsx
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';  // zakładam, że zwraca { register }
+import { useNavigate }     from 'react-router-dom';
+import { useAuth }         from '../hooks/useAuth';
+import './LoginPage.css';   // lub inny plik stylów
 
 export default function RegisterPage() {
-  const [email, setEmail]     = useState('');
-  const [password, setPass]   = useState('');    // zmieniamy nazwę na password
-  const [error, setError]     = useState('');
-  const navigate               = useNavigate();
-  const { register }           = useAuth();
+  const [email, setEmail]       = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError]       = useState('');
+  const navigate                 = useNavigate();
+  const { register }             = useAuth();
 
-  async function submit(e) {
+  const submit = async e => {
     e.preventDefault();
     setError('');
     if (!email || !password) {
@@ -18,13 +19,12 @@ export default function RegisterPage() {
       return;
     }
     try {
-      // przekazujemy obiekt, nie dwa oddzielne argumenty
       await register({ email, password });
       navigate('/login');
     } catch (err) {
       setError(err.message || 'Rejestracja nie powiodła się');
     }
-  }
+  };
 
   return (
     <div className="login-container">
@@ -44,7 +44,7 @@ export default function RegisterPage() {
             type="password"
             placeholder="Hasło"
             value={password}
-            onChange={e => setPass(e.target.value)}
+            onChange={e => setPassword(e.target.value)}
             required
           />
           {error && <div className="login-error">{error}</div>}
