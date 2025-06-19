@@ -1,8 +1,8 @@
 // src/Navigation/Navigation.js
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import './Navigation.css';
+import { AppBar, Toolbar, Typography, Button, Box } from '@mui/material';
 
 export default function Navigation() {
   const { user, logout } = useAuth();
@@ -14,47 +14,42 @@ export default function Navigation() {
   };
 
   return (
-    <nav className="navigation">
-      <ul className="nav-list">
-        <li className="nav-item">
-          <Link to="/activepromotions/search" className="nav-link">Szukaj</Link>
-        </li>
-        <li className="nav-item">
-          <Link to="/activepromotions" className="nav-link">Promocje</Link>
-        </li>
-        <li className="nav-item">
-          <Link to="/activepromotions/top" className="nav-link">Top</Link>
-        </li>
-        <li className="nav-item">
-          <Link to="/stores" className="nav-link">Sklepy</Link>
-        </li>
-        <li className="nav-item">
-          <Link to="/categories" className="nav-link">Kategorie</Link>
-        </li>
-
-        {user ? (
-          <>
-            <li className="nav-item">
-              <Link to="/favourites" className="nav-link">Ulubione</Link>
-            </li>
-            <li
-              className="nav-item clickable"
-              onClick={handleLogout}
-            >
-              <span className="nav-link">Wyloguj</span>
-            </li>
-          </>
-        ) : (
-          <>
-            <li className="nav-item">
-              <Link to="/login" className="nav-link">Zaloguj</Link>
-            </li>
-            <li className="nav-item">
-              <Link to="/register" className="nav-link">Rejestracja</Link>
-            </li>
-          </>
-        )}
-      </ul>
-    </nav>
+    <AppBar position="static">
+      <Toolbar>
+        <Typography
+          variant="h6"
+          component={RouterLink}
+          to="/"
+          sx={{
+            flexGrow: 1,
+            color: 'inherit',
+            textDecoration: 'none',
+            '&:hover': {
+              color: 'secondary.light',
+            },
+          }}
+        >
+          PromoComparer
+        </Typography>
+        <Box>
+          <Button color="inherit" component={RouterLink} to="/activepromotions/search">Szukaj</Button>
+          <Button color="inherit" component={RouterLink} to="/activepromotions">Promocje</Button>
+          <Button color="inherit" component={RouterLink} to="/activepromotions/top">Top</Button>
+          <Button color="inherit" component={RouterLink} to="/stores">Sklepy</Button>
+          <Button color="inherit" component={RouterLink} to="/categories">Kategorie</Button>
+          {user ? (
+            <>
+              <Button color="inherit" component={RouterLink} to="/favourites">Ulubione</Button>
+              <Button color="inherit" onClick={handleLogout}>Wyloguj</Button>
+            </>
+          ) : (
+            <>
+              <Button color="inherit" component={RouterLink} to="/login">Zaloguj</Button>
+              <Button color="inherit" component={RouterLink} to="/register">Rejestracja</Button>
+            </>
+          )}
+        </Box>
+      </Toolbar>
+    </AppBar>
   );
 }

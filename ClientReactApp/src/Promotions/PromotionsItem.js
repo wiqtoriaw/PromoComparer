@@ -1,7 +1,8 @@
 // src/Promotions/PromotionsItem.js
 import React from 'react';
-import './Promotions.css';
 import { useFavourites } from '../context/FavouritesContext';
+import { Card, CardHeader, CardContent, Typography, IconButton } from '@mui/material';
+import { Favorite, FavoriteBorder } from '@mui/icons-material';
 
 const formatDate = date => {
   if (!date) return null;
@@ -25,27 +26,49 @@ export default function PromotionsItem({ promo }) {
       : null;
 
   return (
-    <div className="promotion-item">
-      <button onClick={toggle} className="fav-button">
-        {fav ? '❤️' : '🤍'}
-      </button>
-      {promo.productName && <h3>🛒 {promo.productName}</h3>}
-      {promo.storeName    && <p>🏬 <strong>Sklep:</strong> {promo.storeName}</p>}
-      {promo.priceAfterPromotion != null &&
-         <p>💲 <strong>Cena promocyjna:</strong> {promo.priceAfterPromotion}</p>}
-      {promo.originalPrice != null &&
-         <p>💼 <strong>Cena regularna:</strong> {promo.originalPrice}</p>}
-      {discountAmount &&
-         <p>🔖 <strong>Kwota promocji:</strong> {discountAmount}</p>}
-      {promo.discountPercent != null &&
-         <p>📉 <strong>Procent promocji:</strong> {promo.discountPercent}%</p>}
-      {promo.categoryName &&
-         <p>📦 <strong>Kategoria:</strong> {promo.categoryName}</p>}
-      <p>📅 <strong>Okres:</strong> {formatDate(promo.startDate)} – {formatDate(promo.endDate)}</p>
-      {promo.untilOutOfStock != null &&
-         <p>📦 <strong>Do wyczerpania zapasów:</strong> {promo.untilOutOfStock ? '✔️' : '❌'}</p>}
-      {promo.requiredApp &&
-         <p>📲 <strong>Wymagana aplikacja:</strong> {promo.requiredApp}</p>}
-    </div>
+    <Card sx={{ height: '100%' }}>
+      <CardHeader
+        action={
+          <IconButton aria-label="add to favorites" onClick={toggle}>
+            {fav ? <Favorite color="error" /> : <FavoriteBorder />}
+          </IconButton>
+        }
+        title={promo.productName || 'Promotion'}
+        subheader={promo.storeName}
+      />
+      <CardContent>
+        {promo.priceAfterPromotion != null &&
+          <Typography variant="body2" color="text.secondary">
+            <strong>Cena promocyjna:</strong> {promo.priceAfterPromotion}
+          </Typography>}
+        {promo.originalPrice != null &&
+          <Typography variant="body2" color="text.secondary">
+            <strong>Cena regularna:</strong> {promo.originalPrice}
+          </Typography>}
+        {discountAmount &&
+          <Typography variant="body2" color="text.secondary">
+            <strong>Kwota promocji:</strong> {discountAmount}
+          </Typography>}
+        {promo.discountPercent != null &&
+          <Typography variant="body2" color="text.secondary">
+            <strong>Procent promocji:</strong> {promo.discountPercent}%
+          </Typography>}
+        {promo.categoryName &&
+          <Typography variant="body2" color="text.secondary">
+            <strong>Kategoria:</strong> {promo.categoryName}
+          </Typography>}
+        <Typography variant="body2" color="text.secondary">
+          <strong>Okres:</strong> {formatDate(promo.startDate)} – {formatDate(promo.endDate)}
+        </Typography>
+        {promo.untilOutOfStock != null &&
+          <Typography variant="body2" color="text.secondary">
+            <strong>Do wyczerpania zapasów:</strong> {promo.untilOutOfStock ? '✔️' : '❌'}
+          </Typography>}
+        {promo.requiredApp &&
+          <Typography variant="body2" color="text.secondary">
+            <strong>Wymagana aplikacja:</strong> {promo.requiredApp}
+          </Typography>}
+      </CardContent>
+    </Card>
   );
 }

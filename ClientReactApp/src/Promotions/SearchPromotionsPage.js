@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Promotions from './Promotions';
 import usePromotionsData from '../hooks/usePromotionsData';
-import './SearchPromotionsPage.css';
+import { Typography, CircularProgress, Alert, Box, TextField } from '@mui/material';
 
 const SearchPromotionsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -25,28 +25,29 @@ const SearchPromotionsPage = () => {
     setSearchTerm(event.target.value);
   };
 
-  if (loading) return <p>⏳ Ładowanie promocji...</p>;
-  if (error) return <p>❌ Błąd: {error}</p>;
+  if (loading) return <CircularProgress sx={{ display: 'block', mx: 'auto', mt: 4 }} />;
+  if (error) return <Alert severity="error">{error}</Alert>;
 
   return (
-    <div className="search-promotions-page">
-      <h1>🔍 Wyszukiwarka Promocji</h1>
-      <div className="search-bar">
-        <input
-          type="text"
-          placeholder="Wpisz nazwę produktu..."
-          value={searchTerm}
-          onChange={handleInputChange}
-          className="search-input"
-        />
-      </div>
+    <Box>
+      <Typography variant="h4" component="h1" gutterBottom sx={{ color: 'text.primary' }}>
+        🔍 Wyszukiwarka Promocji
+      </Typography>
+      <TextField
+        fullWidth
+        label="Wpisz nazwę produktu..."
+        variant="outlined"
+        value={searchTerm}
+        onChange={handleInputChange}
+        sx={{ mb: 4 }}
+      />
 
       {searchResults.length > 0 ? (
         <Promotions dataSource={searchResults} title="Wyniki wyszukiwania" />
       ) : (
-        searchTerm && <p>Brak wyników dla frazy: <strong>{searchTerm}</strong>.</p>
+        searchTerm && <Alert severity="info">Brak wyników dla frazy: <strong>{searchTerm}</strong>.</Alert>
       )}
-    </div>
+    </Box>
   );
 };
 

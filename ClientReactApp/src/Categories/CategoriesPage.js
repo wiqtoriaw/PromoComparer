@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useCategoryData from '../hooks/useCategoryData';
-import './CategoriesPage.css';
+import { FormControl, InputLabel, Select, MenuItem, Typography, CircularProgress, Alert, Box } from '@mui/material';
 
 const CategoriesPage = () => {
   const { categories, loading, error } = useCategoryData();
@@ -9,38 +9,40 @@ const CategoriesPage = () => {
   const [selectedCategory, setSelectedCategory] = useState('');
 
   const handleCategoryChange = (event) => {
-    const selectedCategory = event.target.value;
-    setSelectedCategory(selectedCategory);
-    if (selectedCategory) {
-      navigate(`/categories/${selectedCategory}`);
+    const selectedCategoryId = event.target.value;
+    setSelectedCategory(selectedCategoryId);
+    if (selectedCategoryId) {
+      navigate(`/categories/${selectedCategoryId}`);
     }
   };
 
-  if (loading) return <p>⏳ Ładowanie listy kategorii...</p>;
-  if (error) return <p>❌ Błąd: {error}</p>;
-  if (categories.length === 0) return <p>ℹ️ Brak dostępnych kategorii.</p>;
+  if (loading) return <CircularProgress />;
+  if (error) return <Alert severity="error">Błąd: {error}</Alert>;
+  if (categories.length === 0) return <Alert severity="info">Brak dostępnych kategorii.</Alert>;
 
   return (
-    <div className="categories-container">
-      <h2>🎯 Wybierz kategorię produktów</h2>
-      <div className="categories-dropdown">
-        <select
-          defaultValue=""
+    <Box sx={{ maxWidth: 400, margin: 'auto' }}>
+      <Typography variant="h4" component="h2" gutterBottom>
+        🎯 Wybierz kategorię produktów
+      </Typography>
+      <FormControl fullWidth>
+        <InputLabel id="category-select-label">Wybierz kategorię</InputLabel>
+        <Select
+          labelId="category-select-label"
+          id="category-select"
+          value={selectedCategory}
+          label="Wybierz kategorię"
           onChange={handleCategoryChange}
-          aria-label="Wybierz kategorię produktów"
         >
-          <option value="" disabled>
-            Wybierz kategorię
-          </option>
           {categories.map((category) => (
-            <option key={category.id} value={category.id}>
+            <MenuItem key={category.id} value={category.id}>
               {category.name}
-            </option>
+            </MenuItem>
           ))}
-        </select>
-      </div>
+        </Select>
+      </FormControl>
       {selectedCategory && <p>Przekierowywanie do kategorii ID: {selectedCategory}...</p>}
-    </div>
+    </Box>
   );
 };
 

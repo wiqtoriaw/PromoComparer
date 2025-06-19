@@ -16,11 +16,16 @@ const useCategoryPromotionsData = (categoryId) => {
       try {
         console.log(`🌐 Pobieranie promocji dla kategorii o ID: ${categoryId}`);
         const response = await fetch(`http://localhost:5068/api/Promotions/category/${categoryId}`);
-        if (!response.ok) {
+        
+        if (response.status === 404) {
+          setPromotions([]);
+          setError(null);
+        } else if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
+        } else {
+          const data = await response.json();
+          setPromotions(data);
         }
-        const data = await response.json();
-        setPromotions(data);
       } catch (err) {
         console.error('❌ Błąd podczas pobierania danych:', err);
         setError(err.message);

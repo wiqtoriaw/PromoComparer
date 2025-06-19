@@ -1,21 +1,24 @@
 import React from 'react';
 import Promotions from './Promotions';
 import usePromotionsData from '../hooks/usePromotionsData';
-import './PromotionsPage.css';
+import { Typography, CircularProgress, Alert, Box } from '@mui/material';
 
 const CurrentPromotions = () => {
   const { promotions, loading, error } = usePromotionsData();
 
-  if (loading) return <p>⏳ Ładowanie promocji...</p>;
-  if (error) return <p>❌ Błąd: {error}</p>;
+  if (loading) return <CircularProgress sx={{ display: 'block', mx: 'auto', mt: 4 }} />;
+  if (error) return <Alert severity="error">{error}</Alert>;
+  if (!promotions || promotions.length === 0) {
+    return <Alert severity="info">Brak aktualnych promocji.</Alert>;
+  }
 
   return (
-    <div className="promotions-page">
-      <h1>Aktualne Promocje</h1>
+    <Box>
       <Promotions 
         dataSource={promotions}
+        title="Aktualne Promocje"
       />
-    </div>
+    </Box>
   );
 };
 

@@ -1,22 +1,25 @@
 import React from 'react';
 import Promotions from './Promotions';
 import useTopPromotionsData from '../hooks/useTopPromotionsData';
-import './PromotionsPage.css';
+import { Typography, CircularProgress, Alert, Box } from '@mui/material';
 
-const CurrentPromotions = () => {
+const TopPromotionsPage = () => {
   const { topPromotions, loading, error } = useTopPromotionsData();
 
-  if (loading) return <p>⏳ Ładowanie promocji...</p>;
-  if (error) return <p>❌ Błąd: {error}</p>;
+  if (loading) return <CircularProgress sx={{ display: 'block', mx: 'auto', mt: 4 }} />;
+  if (error) return <Alert severity="error">{error}</Alert>;
+  if (!topPromotions || topPromotions.length === 0) {
+    return <Alert severity="info">Brak promocji w tej kategorii.</Alert>;
+  }
 
   return (
-    <div className="promotions-page">
-      <h1>Top10 Promocji</h1>
+    <Box>
       <Promotions 
         dataSource={topPromotions}
+        title="Top 10 Promocji"
       />
-    </div>
+    </Box>
   );
 };
 
-export default CurrentPromotions;
+export default TopPromotionsPage;
