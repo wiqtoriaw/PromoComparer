@@ -4,30 +4,32 @@ const API_BASE = 'http://localhost:5068';
 
 async function fetchWithAuth(path, options = {}) {
   let token = getAccessToken();
+  if (!token) throw new Error('Proszę się najpierw zalogować');
+
   let res = await fetch(`${API_BASE}${path}`, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
-      Authorization: token ? `Bearer ${token}` : undefined,
-      ...options.headers
-    }
+      ...(options.headers || {}),
+      Authorization: `Bearer ${token}`,
+    },
   });
 
   if (res.status === 401) {
-    const r = await refreshToken();
-    if (r.accessToken) {
-      token = r.accessToken;
+    try {
+      const { accessToken } = await refreshToken();
+      token = accessToken;
       res = await fetch(`${API_BASE}${path}`, {
         ...options,
         headers: {
           'Content-Type': 'application/json',
+          ...(options.headers || {}),
           Authorization: `Bearer ${token}`,
-          ...options.headers
-        }
+        },
       });
-    } else {
+    } catch {
       logout();
-      throw new Error('Brak autoryzacji');
+      throw new Error('Sesja wygasła, zaloguj się ponownie');
     }
   }
 
@@ -39,28 +41,23 @@ async function fetchWithAuth(path, options = {}) {
   return res.json();
 }
 
-const api = {
+export default {
   // publiczne
-  getStores:     () => fetch(`${API_BASE}/api/stores`).then(r => r.json()),
-  getCategories: () => fetch(`${API_BASE}/api/categories`).then(r => r.json()),
+  getStores:     () => fetch(`${API_BASE}/api/Stores`).then(r => r.json()),
+  getCategories: () => fetch(`${API_BASE}/api/Categories`).then(r => r.json()),
 
-  // chronione
-  getMe:         () => fetchWithAuth('/users/me'),
-  getFavourites: () => fetchWithAuth('/api/UserPanel/favourite-promotions'),
-  addFavourite:  id => fetchWithAuth('/api/UserPanel', {
-                     method: 'POST',
-                     body: JSON.stringify({ promotionId: id })
-                   }),
-  removeFavourite: id => fetchWithAuth(`/api/UserPanel/${id}`, {
-                         method: 'DELETE'
-                       }),
+  // ulubione (chronione)
+  getFavourites:   () => fetchWithAuth('/api/UserPanel/favourite-promotions'),
+  addFavourite:    id => fetchWithAuth('/api/UserPanel', {
+                        method: 'POST',
+                        body: JSON.stringify({ promotionId: id }),
+                      }),
+  removeFavourite: id => fetchWithAuth('/api/UserPanel/favourite-promotions/' + id, {
+                        method: 'DELETE',
+                      }),
 
-  // dodatkowe
+  // reszta
   getTopPromotions:        () => fetch(`${API_BASE}/api/Promotions/top`).then(r => r.json()),
-  getPromotionsByCategory: id => fetch(`${API_BASE}/api/Promotions/category/${id}`)
-                                     .then(r => r.ok ? r.json() : Promise.reject(r.statusText)),
-  getPromotionsByStore:    id => fetch(`${API_BASE}/api/Promotions/store/${id}`)
-                                     .then(r => r.ok ? r.json() : Promise.reject(r.statusText))
+  getPromotionsByCategory: id => fetch(`${API_BASE}/api/Promotions/category/${id}`).then(r => r.json()),
+  getPromotionsByStore:    id => fetch(`${API_BASE}/api/Promotions/store/${id}`).then(r => r.json()),
 };
-
-export default api;

@@ -1,72 +1,42 @@
 // src/context/AuthProvider.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { AuthContext } from './AuthContext';
-import {
-  register as apiRegister,
-  login as apiLogin,
-  logout as apiLogout,
-  fetchCurrentUser,
-  getAccessToken
-} from '../Services/auth';
-import { jwtDecode } from 'jwt-decode';
+import { register as apiRegister, login as apiLogin, logout as apiLogout } from '../Services/auth';
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
+  const [userEmail, setUserEmail] = useState(null);
 
   useEffect(() => {
-    const token = getAccessToken();
-    if (token) {
-      try {
-        setUser(jwtDecode(token));
-      } catch (e) {
-        console.warn('Dekodowanie JWT nie powiodło się', e);
-      }
-      fetchCurrentUser()
-        .then(full => setUser(full))
-        .catch(() => setUser(null));
+    const token = localStorage.getItem('accessToken');
+    const email = localStorage.getItem('lastLoginEmail');
+    if (token && email) {
+      setUserEmail(email);
     }
   }, []);
 
-  /**
-   * Rejestracja użytkownika.
-   * Jeśli backend zwraca token, logujemy i pobieramy pełny profil.
-   * Jeśli nie, traktujemy rejestrację jako zakończoną sukcesem i zwracamy odpowiedź.
-   */
-  const register = async ({ email, password }) => {
-    const res = await apiRegister({ email, password });
-    if (res.accessToken) {
-      try { setUser(jwtDecode(res.accessToken)); } catch {}
-      const full = await fetchCurrentUser();
-      setUser(full);
-      return full;
-    }
-    return res; // traktujemy sukces nawet bez tokenów
-  };
+  const register = useCallback(async ({ email, password }) => {
+    await apiRegister({ email, password });
+    localStorage.setItem('lastLoginEmail', email);
+    setUserEmail(email);
+  }, []);
 
-  /**
-   * Logowanie użytkownika.
-   */
-  const login = async ({ email, password }) => {
-    const res = await apiLogin(email, password);
-    if (res.accessToken) {
-      try { setUser(jwtDecode(res.accessToken)); } catch {}
-      const full = await fetchCurrentUser();
-      setUser(full);
-      return full;
-    }
-    throw new Error(res.error || 'Logowanie nie powiodło się');
-  };
+  const login = useCallback(async ({ email, password }) => {
+    await apiLogin({ email, password });
+    localStorage.setItem('lastLoginEmail', email);
+    setUserEmail(email);
+  }, []);
 
-  /**
-   * Wylogowanie.
-   */
-  const logout = () => {
+  const logout = useCallback(() => {
     apiLogout();
-    setUser(null);
-  };
+    localStorage.removeItem('lastLoginEmail');
+    setUserEmail(null);
+  }, []);
 
   return (
-    <AuthContext.Provider value={{ user, register, login, logout }}>
+    <AuthContext.Provider value={{
+      user: userEmail ? { email: userEmail } : null,
+      register, login, logout
+    }}>
       {children}
     </AuthContext.Provider>
   );

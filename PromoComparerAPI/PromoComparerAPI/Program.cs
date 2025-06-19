@@ -60,11 +60,12 @@ public class Program
 
         builder.Services.AddAuthentication(options =>
         {
-            options.DefaultScheme = IdentityConstants.ApplicationScheme;
-            options.DefaultChallengeScheme = IdentityConstants.ApplicationScheme;
+            // domyœlnie u¿ywaj BearerToken do uwierzytelniania
+            options.DefaultAuthenticateScheme = IdentityConstants.BearerScheme;
+            options.DefaultChallengeScheme = IdentityConstants.BearerScheme;
         })
-        .AddCookie(IdentityConstants.ApplicationScheme)
-        .AddBearerToken(IdentityConstants.BearerScheme);
+        .AddCookie(IdentityConstants.ApplicationScheme)           // dla formularza login, logout itp.
+        .AddBearerToken(IdentityConstants.BearerScheme);          // obs³uga Authorization: Bearer <token>
 
         builder.Services.ConfigureApplicationCookie(options =>
         {
