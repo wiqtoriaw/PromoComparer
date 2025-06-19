@@ -45,7 +45,7 @@ namespace PromoComparerAPI.Controllers
             return Ok(new { Message = "Promocja została dodana do ulubionych." });
         }
 
-        [HttpDelete("{promotionId:guid}")]
+        [HttpDelete("favourite-promotions/{promotionId:guid}")]
         public async Task<IActionResult> RemoveFavourite(Guid promotionId)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
