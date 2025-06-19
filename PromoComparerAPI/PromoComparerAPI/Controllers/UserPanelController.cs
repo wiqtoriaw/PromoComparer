@@ -44,5 +44,27 @@ namespace PromoComparerAPI.Controllers
             await _userPanelService.AddFavouriteAsync(userId, request.PromotionId);
             return Ok(new { Message = "Promocja została dodana do ulubionych." });
         }
+
+        [HttpDelete("{promotionId:guid}")]
+        public async Task<IActionResult> RemoveFavourite(Guid promotionId)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized();
+            }
+
+            try
+            {
+                await _userPanelService.RemoveFavouriteAsync(userId, promotionId);
+            }
+            catch (Exception ex)
+            {
+                return NotFound(new { Message = ex.Message });
+            }
+
+            return Ok(new { Message = "Promocja została usunięta z ulubionych." });
+        }
+
     }
 }

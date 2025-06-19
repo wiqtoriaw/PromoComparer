@@ -6,5 +6,7 @@ namespace PromoComparerAPI.Interfaces
     {
         Task<IEnumerable<Promotion>> GetFavouritePromotionsAsync(string userId);
         Task AddFavouriteAsync(string userId, Guid promotionId);
+        Task RemoveFavouriteAsync(string userId, Guid promotionId);
+
     }
 }

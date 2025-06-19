@@ -51,5 +51,19 @@ namespace PromoComparerAPI.Services
             _context.Favourites.Add(favourite);
             await _context.SaveChangesAsync();
         }
+
+        public async Task RemoveFavouriteAsync(string userId, Guid promotionId)
+{
+    var favourite = await _context.Favourites
+        .FirstOrDefaultAsync(f => f.UserId == userId && f.PromotionId == promotionId);
+
+    if (favourite == null)
+    {
+        throw new Exception("Nie znaleziono takiej promocji w ulubionych.");
+    }
+
+    _context.Favourites.Remove(favourite);
+    await _context.SaveChangesAsync();
+}
     }
 }
