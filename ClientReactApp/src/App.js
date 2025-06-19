@@ -12,11 +12,13 @@ import LoginPage from './Pages/LoginPage';
 import RegisterPage from './Pages/RegisterPage';
 import FavouritesPage from './Pages/FavouritesPage';
 import { useAuth } from './hooks/useAuth';
-import { Container, Box } from '@mui/material';
+import { Container, Box, Snackbar, Alert } from '@mui/material';
 import Navigation from './Navigation/Navigation';
+import { useNotification } from './context/NotificationContext';
 
 function App() {
   const { user, setUser, logout } = useAuth();
+  const { notification, hideNotification } = useNotification();
 
   return (
     <Router>
@@ -38,6 +40,18 @@ function App() {
           </Routes>
         </Container>
       </Box>
+      {notification && (
+        <Snackbar
+          open
+          autoHideDuration={6000}
+          onClose={hideNotification}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <Alert onClose={hideNotification} severity={notification.sev} sx={{ width: '100%' }}>
+            {notification.msg}
+          </Alert>
+        </Snackbar>
+      )}
     </Router>
   );
 }

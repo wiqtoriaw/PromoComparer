@@ -7,12 +7,14 @@ import React, {
   useCallback
 } from 'react';
 import { useAuth } from '../hooks/useAuth';
+import { useNotification } from './NotificationContext';
 import api from '../Services/api';
 
 const FavouritesContext = createContext();
 
 export function FavouritesProvider({ children }) {
   const { user } = useAuth();
+  const { showNotification } = useNotification();
   const [favourites, setFavourites] = useState([]);
 
   // helper do ładowania pełnej listy ulubionych z backendu
@@ -36,9 +38,13 @@ export function FavouritesProvider({ children }) {
 
   // dodaj ulubioną → potem załaduj na nowo
   const addFavourite = useCallback(async id => {
+    if (!user) {
+      showNotification('Musisz być zalogowany, aby dodać do ulubionych.', 'warning');
+      return;
+    }
     await api.addFavourite(id);
     await loadFavourites();
-  }, [loadFavourites]);
+  }, [user, loadFavourites, showNotification]);
 
   // usuń ulubioną → potem załaduj na nowo
   const removeFavourite = useCallback(async id => {
