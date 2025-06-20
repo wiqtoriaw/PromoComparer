@@ -1,36 +1,24 @@
 // src/application/services/FavouritesService.js
-// Service Layer: zarządzanie ulubionymi promocjami użytkownika
-
-import LocalStorageAdapter from '../../infrastructure/LocalStorageAdapter';
+import HttpClient from '../../infrastructure/HttpClient';
 import AuthService from './AuthService';
+import Promotion from '../../domain/promotion';
 
 const FavouritesService = {
-  storageKey(userId) {
-    return `favourites_${userId}`;
-  },
-
-  getAll() {
+  async getAll() {
     const user = AuthService.getCurrentUser();
     if (!user) return [];
-    return LocalStorageAdapter.get(this.storageKey(user.id)) || [];
+    const data = await HttpClient.get('/api/UserPanel/favourite-promotions');
+    return data.map(item => new Promotion(item));
   },
 
-  add(promotionId) {
-    const user = AuthService.getCurrentUser();
-    if (!user) throw new Error('User not logged in');
-    const favs = new Set(this.getAll());
-    favs.add(promotionId);
-    LocalStorageAdapter.set(this.storageKey(user.id), Array.from(favs));
-    return Array.from(favs);
+  async add(promotionId) {
+    await HttpClient.post('/api/UserPanel', { promotionId });
+    return this.getAll();
   },
 
-  remove(promotionId) {
-    const user = AuthService.getCurrentUser();
-    if (!user) throw new Error('User not logged in');
-    const favs = new Set(this.getAll());
-    favs.delete(promotionId);
-    LocalStorageAdapter.set(this.storageKey(user.id), Array.from(favs));
-    return Array.from(favs);
+  async remove(promotionId) {
+    await HttpClient.delete(`/api/UserPanel/favourite-promotions/${promotionId}`);
+    return this.getAll();
   }
 };
 

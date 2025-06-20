@@ -1,12 +1,15 @@
 // src/presentation/pages/CategoriesPage.js
 import React from 'react';
 import CategoryList from '../components/CategoryList';
+import { Box, Typography } from '@mui/material';
 
 export default function CategoriesPage() {
   return (
-    <div className="p-4">
-      <h2 className="text-2xl mb-4">Kategorie</h2>
+    <Box sx={{ p: 2 }}>
+      <Typography variant="h4" gutterBottom>
+        Kategorie
+      </Typography>
       <CategoryList />
-    </div>
+    </Box>
   );
 }

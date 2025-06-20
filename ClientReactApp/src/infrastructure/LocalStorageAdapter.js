@@ -21,4 +21,5 @@ class LocalStorageAdapter {
   }
 }
 
-export default new LocalStorageAdapter();
+const localStorageAdapter = new LocalStorageAdapter();
+export default localStorageAdapter;

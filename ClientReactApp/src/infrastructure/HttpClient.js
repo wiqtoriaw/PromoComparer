@@ -1,48 +1,37 @@
 // src/infrastructure/HttpClient.js
-// Facade + Singleton: uproszczony klient HTTP z obsługą interceptorów
+// Facade + Singleton: klient HTTP z retry przy token expiration
 
 import AuthInterceptor from './AuthInterceptor';
 
 class HttpClient {
   constructor() {
-    this.baseUrl = process.env.REACT_APP_API_URL;
+    this.baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5068';
     this.interceptor = new AuthInterceptor(this);
   }
 
-  async request(path, options = {}) {
-    const url = `${this.baseUrl}${path}`;
+  async request(path, options={}) {
+    const url = path.startsWith('http') ? path : this.baseUrl + path;
     const opts = await this.interceptor.intercept(options);
-    const response = await fetch(url, opts);
-    if (!response.ok) {
-      // Można tu dodać dodatkowe logowanie błędów
-      throw new Error(`HTTP error! status: ${response.status}`);
+    try {
+      const res = await fetch(url, opts);
+      if (!res.ok) {
+        const error = new Error(`HTTP ${res.status}`);
+        error.response = res;
+        error.url = url;
+        error.options = opts;
+        throw error;
+      }
+      return res.json();
+    } catch (e) {
+      return this.interceptor.handleResponseError(e, { url:path, ...opts });
     }
-    return response.json();
   }
 
-  get(path) {
-    return this.request(path, { method: 'GET' });
-  }
-
-  post(path, body) {
-    return this.request(path, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
-  }
-
-  put(path, body) {
-    return this.request(path, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
-  }
-
-  delete(path) {
-    return this.request(path, { method: 'DELETE' });
-  }
+  get(p)    { return this.request(p, { method:'GET' }); }
+  post(p,b) { return this.request(p, { method:'POST', body:JSON.stringify(b)}); }
+  put(p,b)  { return this.request(p, { method:'PUT',  body:JSON.stringify(b)}); }
+  delete(p) { return this.request(p, { method:'DELETE' }); }
 }
 
-export default new HttpClient();
+const httpClient = new HttpClient();
+export default httpClient;

@@ -3,29 +3,67 @@
 
 import HttpClient from '../../infrastructure/HttpClient';
 import LocalStorageAdapter from '../../infrastructure/LocalStorageAdapter';
-import User from '../../domain/user';
+
+const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5068';
 
 class AuthService {
   constructor() {
-    this.storageKey = 'currentUser';
+    this.storageKey = 'auth';
     this.subscribers = [];
     const stored = LocalStorageAdapter.get(this.storageKey);
-    this.currentUser = stored ? new User(stored) : null;
+    if (stored) {
+      this.accessToken = stored.tokens.access;
+      this.refreshToken = stored.tokens.refresh;
+      this.currentUser = stored.user;
+    } else {
+      this.accessToken = null;
+      this.refreshToken = null;
+      this.currentUser = null;
+    }
   }
 
-  async login(credentials) {
-    const response = await HttpClient.post('/auth/login', credentials);
-    const user = new User(response);
-    this._setUser(user);
-    return user;
+  async register({ email, password }) {
+    const url = `${API_BASE}/register?cookieMode=false&persistCookies=false`;
+    const resp = await HttpClient.post(url, { email, password });
+    // 204 No Content means proceed to login
+    return null;
   }
 
-  logout() {
-    this._setUser(null);
+  async login({ email, password }) {
+    const url = `${API_BASE}/login?cookieMode=false&persistCookies=false`;
+    const resp = await HttpClient.post(url, { email, password });
+    const { accessToken, refreshToken } = resp;
+    this.accessToken = accessToken;
+    this.refreshToken = refreshToken;
+    this.currentUser = { email };
+    this._persist();
+    this.subscribers.forEach(cb => cb(this.currentUser));
+    return this.currentUser;
   }
 
-  getToken() {
-    return this.currentUser ? this.currentUser.token : null;
+  async refresh() {
+    if (!this.refreshToken) throw new Error('No refresh token');
+    const { accessToken, refreshToken } = await HttpClient.post(
+      `${API_BASE}/refresh`,
+      { refreshToken: this.refreshToken }
+    );
+    this.accessToken = accessToken;
+    this.refreshToken = refreshToken;
+    this._persist();
+    return accessToken;
+  }
+
+  async logout() {
+    try {
+      await HttpClient.post(`${API_BASE}/logout`, {});
+    } catch {
+      // ignore
+    }
+    this._clearAuth();
+  }
+
+  getAccessToken() {
+    return this.accessToken;
   }
 
   getCurrentUser() {
@@ -34,21 +72,26 @@ class AuthService {
 
   onAuthChange(callback) {
     this.subscribers.push(callback);
-    // Zwracamy funkcję do odsubskrybowania
     return () => {
       this.subscribers = this.subscribers.filter(cb => cb !== callback);
     };
   }
 
-  _setUser(user) {
-    this.currentUser = user;
-    if (user) {
-      LocalStorageAdapter.set(this.storageKey, user);
-    } else {
-      LocalStorageAdapter.remove(this.storageKey);
-    }
-    this.subscribers.forEach(cb => cb(this.currentUser));
+  _persist() {
+    LocalStorageAdapter.set(this.storageKey, {
+      tokens: { access: this.accessToken, refresh: this.refreshToken },
+      user: this.currentUser
+    });
+  }
+
+  _clearAuth() {
+    this.accessToken = null;
+    this.refreshToken = null;
+    this.currentUser = null;
+    LocalStorageAdapter.remove(this.storageKey);
+    this.subscribers.forEach(cb => cb(null));
   }
 }
 
-export default new AuthService();
+const authService = new AuthService();
+export default authService;

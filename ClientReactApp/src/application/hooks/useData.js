@@ -1,8 +1,13 @@
 // src/application/hooks/useData.js
 import { useState, useEffect } from 'react';
 
-export default function useData(fetchFn) {
-  const [data, setData] = useState([]);
+/**
+ * Custom hook for data fetching.
+ * @param {Function} fetchFn - The function that returns a promise resolving to data.
+ * @param {Array} deps - Dependency array controlling when to re-run fetch.
+ */
+export default function useData(fetchFn, deps = []) {
+  const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -20,7 +25,7 @@ export default function useData(fetchFn) {
         if (mounted) setLoading(false);
       });
     return () => { mounted = false; };
-  }, [fetchFn]);
+  }, deps);
 
   return { data, loading, error };
 }

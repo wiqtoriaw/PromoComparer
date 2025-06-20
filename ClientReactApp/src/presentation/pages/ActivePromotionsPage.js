@@ -1,23 +1,21 @@
-// src/presentation/pages/CategoryPromotionsPage.js
+// src/presentation/pages/ActivePromotionsPage.js
 import React, { useCallback } from 'react';
-import { useParams } from 'react-router-dom';
 import PromotionsList from '../components/PromotionsList';
-import PromotionsItem from '../components/PromotionCard/PromotionsItem';
+import PromotionItem from '../components/PromotionCard/PromotionsItem';
 import PromotionService from '../../application/services/PromotionService';
 import { useFavourites } from '../context/FavouritesContext';
 import useAuth from '../../application/hooks/useAuth';
 import { Box, Typography } from '@mui/material';
 
-export default function CategoryPromotionsPage() {
-  const { categoryId } = useParams();
-  const { user } = useAuth();
-  const { favourites, add, remove } = useFavourites();
-
-  // Memoized fetch by category, runs only when categoryId changes
-  const fetchByCategory = useCallback(
-    () => PromotionService.getByCategory(categoryId),
-    [categoryId]
+export default function ActivePromotionsPage() {
+  // Memoized fetch to run only once or when dependencies change
+  const fetchActive = useCallback(
+    () => PromotionService.getActive(),
+    []
   );
+
+  const { user } = useAuth();
+  const { favourites, remove, add } = useFavourites();
 
   const handleToggle = id => {
     if (!user) return;
@@ -29,13 +27,13 @@ export default function CategoryPromotionsPage() {
   return (
     <Box sx={{ p: 2 }}>
       <Typography variant="h4" gutterBottom>
-        Promocje w kategorii
+        Wszystkie promocje
       </Typography>
       <PromotionsList
-        fetchFn={fetchByCategory}
-        deps={[fetchByCategory]}
+        fetchFn={fetchActive}
+        deps={[fetchActive]}
         renderItem={promotion => (
-          <PromotionsItem
+          <PromotionItem
             key={promotion.id}
             promotion={promotion}
             isFavourite={favourites.some(p => p.id === promotion.id)}

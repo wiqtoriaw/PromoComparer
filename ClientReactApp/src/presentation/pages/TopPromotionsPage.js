@@ -1,6 +1,5 @@
-// src/presentation/pages/CategoryPromotionsPage.js
+// src/presentation/pages/TopPromotionsPage.js
 import React, { useCallback } from 'react';
-import { useParams } from 'react-router-dom';
 import PromotionsList from '../components/PromotionsList';
 import PromotionsItem from '../components/PromotionCard/PromotionsItem';
 import PromotionService from '../../application/services/PromotionService';
@@ -8,16 +7,9 @@ import { useFavourites } from '../context/FavouritesContext';
 import useAuth from '../../application/hooks/useAuth';
 import { Box, Typography } from '@mui/material';
 
-export default function CategoryPromotionsPage() {
-  const { categoryId } = useParams();
+export default function TopPromotionsPage() {
   const { user } = useAuth();
   const { favourites, add, remove } = useFavourites();
-
-  // Memoized fetch by category, runs only when categoryId changes
-  const fetchByCategory = useCallback(
-    () => PromotionService.getByCategory(categoryId),
-    [categoryId]
-  );
 
   const handleToggle = id => {
     if (!user) return;
@@ -26,14 +18,20 @@ export default function CategoryPromotionsPage() {
     else add(id);
   };
 
+  // Memoizuj fetchFn, aby nie zmieniała się referencja
+  const fetchTop = useCallback(
+    () => PromotionService.getTop(),
+    []
+  );
+
   return (
     <Box sx={{ p: 2 }}>
       <Typography variant="h4" gutterBottom>
-        Promocje w kategorii
+        Najlepsze promocje
       </Typography>
       <PromotionsList
-        fetchFn={fetchByCategory}
-        deps={[fetchByCategory]}
+        fetchFn={fetchTop}
+        deps={[fetchTop]}
         renderItem={promotion => (
           <PromotionsItem
             key={promotion.id}

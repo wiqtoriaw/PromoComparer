@@ -1,21 +1,30 @@
 // src/application/services/PromotionService.js
-// Service Layer: operacje na promocjach
-
 import HttpClient from '../../infrastructure/HttpClient';
-import Promotion from '../../domain/promotion';
 
 const PromotionService = {
-  async getAll() {
-    const data = await HttpClient.get('/promotions');
-    return data.map(item => new Promotion(item));
+  /** Wszystkie aktywne promocje */
+  getActive() {
+    return HttpClient.get('/api/Promotions/active');
   },
-  async getTop() {
-    const data = await HttpClient.get('/promotions/top');
-    return data.map(item => new Promotion(item));
+
+  /** Top 10 promocji */
+  getTop() {
+    return HttpClient.get('/api/Promotions/top');
   },
-  async getByCategory(categoryId) {
-    const data = await HttpClient.get(`/categories/${categoryId}/promotions`);
-    return data.map(item => new Promotion(item));
+
+  /** Promocje według kategorii */
+  getByCategory(categoryId) {
+    return HttpClient.get(`/api/Promotions/category/${categoryId}`);
+  },
+
+  /** Promocje według sklepu */
+  getByStore(storeId) {
+    return HttpClient.get(`/api/Promotions/store/${storeId}`);
+  },
+
+  /** Wyszukiwanie promocji */
+  search(term) {
+    return HttpClient.get(`/api/Promotions/search?query=${encodeURIComponent(term)}`);
   }
 };
 

@@ -1,3 +1,6 @@
+// src/infrastructure/AuthInterceptor.js
+// Chain of Responsibility: wstrzykuje token oraz obsługuje odświeżenie przy 401
+
 import AuthService from '../application/services/AuthService';
 
 class AuthInterceptor {
@@ -6,16 +9,21 @@ class AuthInterceptor {
   }
 
   async intercept(options) {
-    const token = AuthService.getToken();
-    const headers = { ...options.headers, 'Content-Type': 'application/json' };
-
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    }
-
+    const token = AuthService.getAccessToken();
+    const headers = { ...(options.headers||{}), 'Content-Type':'application/json' };
+    if (token) headers.Authorization = `Bearer ${token}`;
     return { ...options, headers };
+  }
+
+  async handleResponseError(err, originalRequest) {
+    if (err.response?.status === 401) {
+      await AuthService.refresh();
+      const opts = await this.intercept(originalRequest);
+      return this.client.request(originalRequest.url, opts);
+    }
+    throw err;
   }
 }
 
-// Eksport domyślny klasy AuthInterceptor musi tu zostać
-export default AuthInterceptor;
+const authInterceptor = AuthInterceptor;
+export default authInterceptor;
