@@ -1,4 +1,5 @@
 // src/domain/shop.js
+
 class Shop {
   constructor({ id, name, description = '', imageUrl = '' }) {
     this.id = id;

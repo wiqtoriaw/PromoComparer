@@ -1,4 +1,5 @@
 // src/presentation/pages/TopPromotionsPage.js
+
 import React, { useCallback } from 'react';
 import PromotionsList from '../components/PromotionsList';
 import PromotionsItem from '../components/PromotionCard/PromotionsItem';
@@ -18,7 +19,6 @@ export default function TopPromotionsPage() {
     else add(id);
   };
 
-  // Memoizuj fetchFn, aby nie zmieniała się referencja
   const fetchTop = useCallback(
     () => PromotionService.getTop(),
     []

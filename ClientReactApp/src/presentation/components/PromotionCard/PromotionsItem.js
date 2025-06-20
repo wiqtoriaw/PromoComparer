@@ -1,11 +1,11 @@
 // src/presentation/components/PromotionCard/PromotionsItem.js
+
 import React from 'react';
 import { Card } from '@mui/material';
 import PromotionCardHeader from './PromotionCardHeader';
 import PromotionCardDetails from './PromotionCardDetails';
 
 export default function PromotionsItem({ promotion, isFavourite, onFavouriteToggle }) {
-  // Obliczenia, formatowanie itd.
   const discountAmount =
     promotion.discountAmount ??
     (promotion.originalPrice != null && promotion.priceAfterPromotion != null

@@ -1,5 +1,4 @@
 // src/infrastructure/HttpClient.js
-// Facade + Singleton: klient HTTP z retry przy token expiration
 
 import AuthInterceptor from './AuthInterceptor';
 

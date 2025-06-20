@@ -1,4 +1,5 @@
 // src/presentation/pages/CategoryPromotionsPage.js
+
 import React, { useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import PromotionsList from '../components/PromotionsList';
@@ -13,7 +14,6 @@ export default function CategoryPromotionsPage() {
   const { user } = useAuth();
   const { favourites, add, remove } = useFavourites();
 
-  // Memoized fetch by category, runs only when categoryId changes
   const fetchByCategory = useCallback(
     () => PromotionService.getByCategory(categoryId),
     [categoryId]

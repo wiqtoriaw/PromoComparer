@@ -1,4 +1,5 @@
 // src/presentation/pages/StoresPage.js
+
 import React from 'react';
 import useShopData from '../../application/hooks/useShopData';
 import StoreCard from '../components/StoreCard';

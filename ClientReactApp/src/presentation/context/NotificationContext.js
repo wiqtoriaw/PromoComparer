@@ -1,4 +1,5 @@
 // src/presentation/context/NotificationContext.js
+
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -14,7 +15,6 @@ export function NotificationProvider({ children }) {
   const notify = useCallback((message, type = 'info') => {
     const id = uuidv4();
     setNotifications(prev => [...prev, { id, message, type }]);
-    // auto-remove after 5s
     setTimeout(() => {
       setNotifications(prev => prev.filter(n => n.id !== id));
     }, 5000);

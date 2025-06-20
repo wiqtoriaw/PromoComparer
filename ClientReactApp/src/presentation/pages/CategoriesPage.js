@@ -1,4 +1,5 @@
 // src/presentation/pages/CategoriesPage.js
+
 import React from 'react';
 import CategoryList from '../components/CategoryList';
 import { Box, Typography } from '@mui/material';

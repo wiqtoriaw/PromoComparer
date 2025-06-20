@@ -13,7 +13,6 @@ export default function useAuth() {
   }, []);
 
   const login = async (credentials) => {
-    // Użycie metody instancji AuthService zapewnia poprawny this
     return await AuthService.login(credentials);
   };
 

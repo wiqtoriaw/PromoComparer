@@ -4,11 +4,11 @@ const sunsetTheme = createTheme({
   palette: {
     mode: 'dark',
     primary: {
-      main: '#ff7043', // Deep Orange
+      main: '#ff7043',
       contrastText: 'rgba(0, 0, 0, 0.87)',
     },
     secondary: {
-      main: '#7e57c2', // Deep Purple
+      main: '#7e57c2',
       contrastText: '#ffffff',
     },
     background: {
@@ -30,7 +30,7 @@ const sunsetTheme = createTheme({
     MuiAppBar: {
       styleOverrides: {
         root: {
-          background: 'linear-gradient(45deg, #4a148c 30%, #ff6f00 90%)', // Purple to Amber
+          background: 'linear-gradient(45deg, #4a148c 30%, #ff6f00 90%)',
           color: '#ffffff',
           boxShadow: '0 3px 5px 2px rgba(255, 105, 135, .3)',
         },

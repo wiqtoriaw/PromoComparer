@@ -1,5 +1,4 @@
 // src/domain/category.js
-// Encja reprezentująca kategorię promocji
 
 class Category {
   constructor({ id, name, description = '' }) {
@@ -7,8 +6,6 @@ class Category {
     this.name = name;
     this.description = description;
   }
-
-  // Możemy tu dodać metody biznesowe specyficzne dla kategorii
 }
 
 export default Category;

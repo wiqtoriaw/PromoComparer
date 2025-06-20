@@ -1,4 +1,5 @@
 // src/presentation/pages/SearchPage.js
+
 import React, { useState, useMemo } from 'react';
 import usePromotionsData from '../../application/hooks/usePromotionData';
 import PromotionGrid from '../components/PromotionsGrid';
@@ -44,6 +45,7 @@ export default function SearchPage() {
             ? "Nie znaleziono żadnych promocji dla podanych kryteriów."
             : "Wpisz frazę, by wyszukać promocje."}
           withAnimation
+          query={query}
         />
       )}
     </Box>

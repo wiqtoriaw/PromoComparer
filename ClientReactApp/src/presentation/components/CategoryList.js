@@ -1,4 +1,5 @@
 // src/presentation/components/CategoryList.js
+
 import React from 'react';
 import useCategoryData from '../../application/hooks/useCategoryData';
 import CategoryCard from './CategoryCard';

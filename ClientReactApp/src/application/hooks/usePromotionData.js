@@ -1,8 +1,8 @@
-// src/application/hooks/usePromotionData.js
+// src/application/hooks/usePromotionsData.js
 import useData from './useData';
 import PromotionService from '../services/PromotionService';
 
-export default function usePromotionData() {
-  const { data, loading, error } = useData(() => PromotionService.getActive());
-  return { promotions: data, loading, error };
+export default function usePromotionsData() {
+  const { data: promotions, loading, error } = useData(() => PromotionService.getActive());
+  return { promotions, loading, error };
 }

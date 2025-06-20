@@ -1,5 +1,4 @@
 // src/infrastructure/LocalStorageAdapter.js
-// Adapter: enkapsuluje dostęp do localStorage, ułatwia testowanie i ewentualną wymianę
 
 class LocalStorageAdapter {
   get(key) {

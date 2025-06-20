@@ -1,5 +1,5 @@
 import { CardContent, Typography, Box, Chip } from '@mui/material';
-import { formatDate } from '../../../utilities/formatDate'; // <-- nowy import
+import { formatDate } from '../../../utilities/formatDate';
 
 export default function PromotionCardDetails({ promotion, discountAmount, expired }) {
   const start = formatDate(promotion.startDate);

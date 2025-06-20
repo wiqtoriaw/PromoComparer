@@ -1,4 +1,5 @@
 // src/presentation/components/CategoryCard.js
+
 import React from 'react';
 import { Card, CardActionArea, CardContent, Typography } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';

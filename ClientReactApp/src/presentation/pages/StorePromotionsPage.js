@@ -1,4 +1,5 @@
 // src/presentation/pages/StorePromotionsPage.js
+
 import React, { useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import useData from '../../application/hooks/useData';

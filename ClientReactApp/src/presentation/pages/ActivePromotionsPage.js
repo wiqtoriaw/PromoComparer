@@ -1,4 +1,5 @@
 // src/presentation/pages/ActivePromotionsPage.js
+
 import React, { useCallback } from 'react';
 import PromotionsList from '../components/PromotionsList';
 import PromotionItem from '../components/PromotionCard/PromotionsItem';
@@ -8,7 +9,6 @@ import useAuth from '../../application/hooks/useAuth';
 import { Box, Typography } from '@mui/material';
 
 export default function ActivePromotionsPage() {
-  // Memoized fetch to run only once or when dependencies change
   const fetchActive = useCallback(
     () => PromotionService.getActive(),
     []

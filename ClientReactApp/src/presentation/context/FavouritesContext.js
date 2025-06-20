@@ -1,4 +1,5 @@
 // src/presentation/context/FavouritesContext.js
+
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import FavouritesService from '../../application/services/FavouritesService';
 import useAuth from '../../application/hooks/useAuth';
@@ -11,7 +12,6 @@ export function FavouritesProvider({ children }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Pobieraj ulubione tylko przy zmianie użytkownika (login/logout)
   useEffect(() => {
     if (!user) {
       setFavourites([]);
@@ -26,7 +26,6 @@ export function FavouritesProvider({ children }) {
       .finally(() => setLoading(false));
   }, [user]);
 
-  // Dodawanie ulubionych
   const add = useCallback(async (id) => {
     try {
       const updated = await FavouritesService.add(id);
@@ -36,7 +35,6 @@ export function FavouritesProvider({ children }) {
     }
   }, []);
 
-  // Usuwanie ulubionych
   const remove = useCallback(async (id) => {
     try {
       const updated = await FavouritesService.remove(id);
@@ -53,7 +51,6 @@ export function FavouritesProvider({ children }) {
   );
 }
 
-// Własny hook do korzystania z contextu
 export function useFavourites() {
   return useContext(FavouritesContext);
 }

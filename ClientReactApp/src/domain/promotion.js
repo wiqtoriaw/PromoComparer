@@ -1,5 +1,4 @@
 // src/domain/promotion.js
-// Encja reprezentująca promocję
 
 class Promotion {
   constructor({ id, title, description = '', categoryId, startDate, endDate, imageUrl = '' }) {
@@ -12,12 +11,9 @@ class Promotion {
     this.imageUrl = imageUrl;
   }
 
-  // Sprawdza, czy promocja jest aktywna w danym momencie
   isActive(referenceDate = new Date()) {
     return referenceDate >= this.startDate && referenceDate <= this.endDate;
   }
-
-  // Można dodać inne metody, np. formatowanie dat, obliczenia czasu trwania
 }
 
 export default Promotion;

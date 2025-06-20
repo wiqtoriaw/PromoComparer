@@ -1,4 +1,5 @@
 // src/presentation/components/StoreCard.js
+
 import React from 'react';
 import { Card, CardActionArea, CardContent, Typography } from '@mui/material';
 import StorefrontIcon from '@mui/icons-material/Storefront';

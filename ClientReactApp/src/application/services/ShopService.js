@@ -10,7 +10,7 @@ const ShopService = {
 
   async getById(storeId) {
     const data = await HttpClient.get(`/api/Promotions/store/${storeId}`);
-    return data; // promotions; wrap in domain if needed
+    return data;
   }
 };
 
