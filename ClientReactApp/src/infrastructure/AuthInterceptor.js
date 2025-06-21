@@ -1,5 +1,4 @@
 // src/infrastructure/AuthInterceptor.js
-// Chain of Responsibility: wstrzykuje token oraz obsługuje odświeżenie przy 401
 
 import AuthService from '../application/services/AuthService';
 
